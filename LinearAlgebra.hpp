@@ -11,6 +11,5 @@ namespace ax
 }
 
 #include "JacobiMethod.hpp"
-#include "VectorRotation.hpp"
 
 #endif //AX_LINEAR_ALGEBRA_H
