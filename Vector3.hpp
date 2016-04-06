@@ -80,7 +80,7 @@ namespace ax
                          is_ScalarType<E>::value>::type*& = enabler>
             RealVector& operator*=(const E& exp)
             {
-                *this = VectorSclMul<RealVector>(*this, exp);
+                *this = VectorSclMul<RealVector>(exp, *this);
                 return *this;
             } 
 
