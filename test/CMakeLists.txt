@@ -1,6 +1,6 @@
 set(TEST_NAMES
     test_3Dvector
-#     test_static_vector
+    test_static_vector
 #     test_dynamic_vector
 #     test_static_matrix
 #     test_dynamic_matrix
