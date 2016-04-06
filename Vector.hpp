@@ -72,7 +72,7 @@ namespace ax
                          enabler>
             RealVector& operator*=(const E& exp)
             {
-                *this = VectorSclMul<RealVector>(*this, exp);
+                *this = VectorSclMul<RealVector>(exp, *this);
                 return *this;
             } 
 
