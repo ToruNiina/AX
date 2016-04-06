@@ -10,6 +10,8 @@
 #include "Vector3.hpp"
 using Vector3d = ax::RealVector<3>;
 
+#include <random>
+
 BOOST_AUTO_TEST_CASE(Vector3d_Constructable)
 {
     const Vector3d vec;
@@ -154,4 +156,84 @@ BOOST_AUTO_TEST_CASE(Vector3d_Scalar_division)
     BOOST_CHECK_EQUAL(vec4[2], 3e0);
 }
 
+BOOST_AUTO_TEST_CASE(Vector3d_dot_product)
+{
+    const Vector3d vec1(1e0, 0e0, 0e0);
+    const Vector3d vec2(0e0, 1e0, 0e0);
 
+    BOOST_CHECK_EQUAL(dot_prod(vec1, vec2), 0e0);
+    BOOST_CHECK_EQUAL(dot_prod(vec2, vec1), 0e0);
+
+    std::random_device rnd;
+    std::mt19937 mt(rnd());
+    std::uniform_real_distribution<double> randreal(0e0, 1e0);
+    const double x1 = randreal(mt);
+    const double y1 = randreal(mt);
+    const double z1 = randreal(mt);
+
+    const double x2 = randreal(mt);
+    const double y2 = randreal(mt);
+    const double z2 = randreal(mt);
+   
+    const Vector3d vec3(x1, y1, z1);
+    const Vector3d vec4(x2, y2, z2);
+
+    const double dot_product = x1 * x2 + y1 * y2 + z1 * z2;
+
+    BOOST_CHECK_EQUAL(dot_prod(vec3, vec4), dot_product);
+}
+
+BOOST_AUTO_TEST_CASE(Vector3d_length)
+{
+    const Vector3d vec1(1e0, 0e0, 0e0);
+    BOOST_CHECK_EQUAL(length(vec1), 1e0);
+
+    std::random_device rnd;
+    std::mt19937 mt(rnd());
+    std::uniform_real_distribution<double> randreal(0e0, 1e0);
+    const double x1 = randreal(mt);
+    const double y1 = randreal(mt);
+    const double z1 = randreal(mt);
+
+    const Vector3d vec3(x1, y1, z1);
+
+    const double lensq_vec3 = x1 * x1 + y1 * y1 + z1 * z1;
+
+    BOOST_CHECK_EQUAL(len_square(vec3), lensq_vec3);
+    BOOST_CHECK_EQUAL(length(vec3), std::sqrt(lensq_vec3));
+
+    BOOST_CHECK_EQUAL(len_square(vec3), dot_prod(vec3, vec3));
+}
+
+BOOST_AUTO_TEST_CASE(Vector3d_cross_product)
+{
+    const Vector3d vec1(1e0, 0e0, 0e0);
+    const Vector3d vec2(0e0, 1e0, 0e0);
+    const Vector3d vec3 = cross_prod(vec1, vec2);
+
+    BOOST_CHECK_EQUAL(vec3[0], 0e0);
+    BOOST_CHECK_EQUAL(vec3[1], 0e0);
+    BOOST_CHECK_EQUAL(vec3[2], 1e0);
+
+    std::random_device rnd;
+    std::mt19937 mt(rnd());
+    std::uniform_real_distribution<double> randreal(0e0, 1e0);
+    const double x1 = randreal(mt);
+    const double y1 = randreal(mt);
+    const double z1 = randreal(mt);
+
+    const double x2 = randreal(mt);
+    const double y2 = randreal(mt);
+    const double z2 = randreal(mt);
+
+    const Vector3d vec4(x1, y1, z1);
+    const Vector3d vec5(x2, y2, z2);
+    const Vector3d vec6 = cross_prod(vec4, vec5);
+
+    const double cos_theta = dot_prod(vec4, vec5) / length(vec4) / length(vec5);
+    const double area = length(vec4) * length(vec5) * sin(acos(cos_theta));
+
+    BOOST_CHECK_SMALL(dot_prod(vec4, vec6), 1e-12);
+    BOOST_CHECK_SMALL(dot_prod(vec5, vec6), 1e-12);
+    BOOST_CHECK_CLOSE_FRACTION(length(vec6), area, 1e-12);
+}
