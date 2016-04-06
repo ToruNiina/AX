@@ -1,4 +1,4 @@
 *.dat
 *.out
-test*
-build/
+build/*
+!.gitkeep
