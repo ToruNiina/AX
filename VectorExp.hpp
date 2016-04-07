@@ -207,5 +207,15 @@ namespace ax
     {
         return VectorCross<L,R>(lhs, rhs);
     }
+
+    template <class L,
+              typename std::enable_if<
+                  is_VectorExpression<typename L::value_trait>::value
+                  >::type*& = enabler>
+    VectorSclDiv<L> normalize(const L& lhs)
+    {
+        return VectorSclDiv<L>(lhs, length(lhs));
+    }
+
 }
 #endif //AX_VECTOR3_EXPRESSION_H
