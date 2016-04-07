@@ -1,7 +1,6 @@
 #ifndef AX_LINEAR_ALGEBRA_H
 #define AX_LINEAR_ALGEBRA_H
-#include "Vector3.hpp"
-#include "Matrix.hpp"
+#include "MatrixVectorMultiplication.hpp"
 
 namespace ax
 {
