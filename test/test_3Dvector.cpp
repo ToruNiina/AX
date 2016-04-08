@@ -8,6 +8,7 @@
 #endif
 
 #include "Vector3.hpp"
+#include "VectorRotation.hpp"
 using Vector3d = ax::RealVector<3>;
 
 #include <random>
@@ -245,5 +246,65 @@ BOOST_AUTO_TEST_CASE(Vector3d_cross_product)
         BOOST_CHECK_SMALL(dot_prod(vec4, vec6), 1e-12);
         BOOST_CHECK_SMALL(dot_prod(vec5, vec6), 1e-12);
         BOOST_CHECK_CLOSE_FRACTION(length(vec6), area, 1e-12);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(Vector3d_rotation)
+{
+    const Vector3d vec1(1e0, 0e0, 0e0);
+    const Vector3d vec2(0e0, 0e0, 1e0);
+    const double dtheta = M_PI / 100;
+
+    for(auto i = 0; i<200; ++i)
+    {
+        const double theta = dtheta * i;
+        const Vector3d vec3 = rotation(theta, vec2, vec1);
+
+        BOOST_CHECK_CLOSE(length(vec3), 1e0, 1e-12);
+        if(i == 50 || i == 150)
+            BOOST_CHECK_SMALL(vec3[0], 1e-12);
+        else
+            BOOST_CHECK_CLOSE(vec3[0], cos(theta), 1e-12);
+
+        if(i == 100)
+            BOOST_CHECK_SMALL(vec3[1], 1e-12);
+        else
+            BOOST_CHECK_CLOSE(vec3[1], sin(theta), 1e-12);
+
+        BOOST_CHECK_SMALL(vec3[2], 1e-12);
+    }
+    unsigned seed(10);
+    std::mt19937 mt(seed);
+    std::uniform_real_distribution<double> randreal(0e0, 1e0);
+ 
+    const double x1 = randreal(mt);
+    const double y1 = randreal(mt);
+    const double z1 = randreal(mt);
+ 
+    const double x2 = randreal(mt);
+    const double y2 = randreal(mt);
+    const double z2 = randreal(mt);
+
+    const Vector3d vec4(normalize(Vector3d(x1, y1, z1)));
+    const Vector3d vec5(normalize(Vector3d(x2, y2, z2)));
+    const Vector3d axis = normalize(cross_prod(vec4, vec5));
+
+    BOOST_CHECK_CLOSE(length(vec4), 1e0, 1e-12);
+    BOOST_CHECK_CLOSE(length(vec5), 1e0, 1e-12);
+    BOOST_CHECK_CLOSE(length(axis), 1e0, 1e-12);
+
+    for(auto i = 0; i<100; ++i)
+    {
+        const double theta = dtheta * i;
+        const Vector3d vec6 = rotation(theta, axis, vec4);
+
+        BOOST_CHECK_CLOSE(length(vec6), 1e0, 1e-12);
+
+        const double dot = dot_prod(vec4, vec6);
+
+        if(i == 50)
+            BOOST_CHECK_SMALL(dot, 1e-12);
+        else
+            BOOST_CHECK_CLOSE(dot, cos(theta), 1e-12);
     }
 }
