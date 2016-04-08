@@ -3,7 +3,16 @@ AX
 
 Library for using Vector and Matrix.
 
+## usage
+
+AX is header only library.
+To use AX, the only thing you have to do is including these files in your codes.
+
 ## testing
+
+using Boost.Test framework and CTest.
+
+to test AX, run following commands.
 
     cd build
     cmake ..
