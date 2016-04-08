@@ -135,46 +135,52 @@ BOOST_AUTO_TEST_CASE(VectorNd_Scalar_division)
 
 BOOST_AUTO_TEST_CASE(VectorNd_dot_product)
 {
-    std::random_device rnd;
-    std::mt19937 mt(rnd());
+    unsigned seed(10);
+    std::mt19937 mt(seed);
     std::uniform_real_distribution<double> randreal(0e0, 1e0);
 
-    std::array<double, 10> v1;
-    for(std::size_t i=0; i<10; ++i)
-        v1.at(i) = randreal(mt);
+    for(auto i=0; i<100; ++i)
+    {
+        std::array<double, 10> v1;
+        for(std::size_t i=0; i<10; ++i)
+            v1.at(i) = randreal(mt);
 
-    std::array<double, 10> v2;
-    for(std::size_t i=0; i<10; ++i)
-        v2.at(i) = randreal(mt);
+        std::array<double, 10> v2;
+        for(std::size_t i=0; i<10; ++i)
+            v2.at(i) = randreal(mt);
 
-    const VectorNd<10> vec1(v1);
-    const VectorNd<10> vec2(v2);
+        const VectorNd<10> vec1(v1);
+        const VectorNd<10> vec2(v2);
 
-    double dot_product = 0e0;
-    for(std::size_t i=0; i<10; ++i)
-        dot_product += v1.at(i) * v2.at(i);
+        double dot_product = 0e0;
+        for(std::size_t i=0; i<10; ++i)
+            dot_product += v1.at(i) * v2.at(i);
 
-    BOOST_CHECK_EQUAL(dot_prod(vec1, vec2), dot_product);
+        BOOST_CHECK_EQUAL(dot_prod(vec1, vec2), dot_product);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(VectorNd_length)
 {
-    std::random_device rnd;
-    std::mt19937 mt(rnd());
+    unsigned seed(10);
+    std::mt19937 mt(seed);
     std::uniform_real_distribution<double> randreal(0e0, 1e0);
 
-    std::array<double, 10> v1;
-    for(std::size_t i=0; i<10; ++i)
-        v1.at(i) = randreal(mt);
+    for(auto i=0; i<100; ++i)
+    {
+        std::array<double, 10> v1;
+        for(std::size_t i=0; i<10; ++i)
+            v1.at(i) = randreal(mt);
 
-    const VectorNd<10> vec1(v1);
+        const VectorNd<10> vec1(v1);
 
-    double lensq = 0e0;
-    for(std::size_t i=0; i<10; ++i)
-        lensq += v1.at(i) * v1.at(i);
+        double lensq = 0e0;
+        for(std::size_t i=0; i<10; ++i)
+            lensq += v1.at(i) * v1.at(i);
 
-    BOOST_CHECK_EQUAL(len_square(vec1), lensq);
-    BOOST_CHECK_EQUAL(length(vec1), std::sqrt(lensq));
+        BOOST_CHECK_EQUAL(len_square(vec1), lensq);
+        BOOST_CHECK_EQUAL(length(vec1), std::sqrt(lensq));
 
-    BOOST_CHECK_EQUAL(len_square(vec1), dot_prod(vec1, vec1));
+        BOOST_CHECK_EQUAL(len_square(vec1), dot_prod(vec1, vec1));
+    }
 }
