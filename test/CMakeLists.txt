@@ -6,7 +6,7 @@ set(TEST_NAMES
 #     test_dynamic_matrix
     )
 
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/test/)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/)
 
 set(test_library_dependencies)
 find_library(BOOST_UNITTEST_FRAMEWORK_LIBRARY boost_unit_test_framework)
