@@ -5,8 +5,6 @@
 
 namespace ax
 {
-    using Realquat = boost::math::quaternion<double>;
-
     template<class A, class T,
              typename std::enable_if<
                  is_VectorExpression<typename A::value_trait>::value&&
@@ -15,8 +13,10 @@ namespace ax
                  is_SameSize<T::size, 3>::value
                  >::type*& = enabler
              >
-    Realvec rotation(const double angle, const A& axis, const T& target)
+    RealVector<3> rotation(const double angle, const A& axis, const T& target)
     {
+        using Realquat = boost::math::quaternion<double>;
+
         const double sin_normalize(sin(angle * 0.5) / length(axis));
 
         const Realquat Q(cos(angle * 0.5), axis[0] * sin_normalize, 
