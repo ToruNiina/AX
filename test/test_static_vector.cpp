@@ -11,6 +11,9 @@
 template<std::size_t N>
 using VectorNd = ax::RealVector<N>;
 
+#include "test_Defs.hpp"
+using ax::test::seed;
+
 #include <random>
 
 BOOST_AUTO_TEST_CASE(VectorNd_Constructable)
@@ -135,7 +138,6 @@ BOOST_AUTO_TEST_CASE(VectorNd_Scalar_division)
 
 BOOST_AUTO_TEST_CASE(VectorNd_dot_product)
 {
-    unsigned seed(10);
     std::mt19937 mt(seed);
     std::uniform_real_distribution<double> randreal(0e0, 1e0);
 
@@ -162,7 +164,6 @@ BOOST_AUTO_TEST_CASE(VectorNd_dot_product)
 
 BOOST_AUTO_TEST_CASE(VectorNd_length)
 {
-    unsigned seed(10);
     std::mt19937 mt(seed);
     std::uniform_real_distribution<double> randreal(0e0, 1e0);
 

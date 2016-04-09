@@ -11,6 +11,10 @@
 #include "VectorRotation.hpp"
 using Vector3d = ax::RealVector<3>;
 
+#include "test_Defs.hpp"
+using ax::test::tolerance;
+using ax::test::seed;
+
 #include <random>
 
 BOOST_AUTO_TEST_CASE(Vector3d_Constructable)
@@ -165,7 +169,6 @@ BOOST_AUTO_TEST_CASE(Vector3d_dot_product)
     BOOST_CHECK_EQUAL(dot_prod(vec1, vec2), 0e0);
     BOOST_CHECK_EQUAL(dot_prod(vec2, vec1), 0e0);
 
-    unsigned seed(10);
     std::mt19937 mt(seed);
     std::uniform_real_distribution<double> randreal(0e0, 1e0);
 
@@ -193,7 +196,6 @@ BOOST_AUTO_TEST_CASE(Vector3d_length)
     const Vector3d vec1(1e0, 0e0, 0e0);
     BOOST_CHECK_EQUAL(length(vec1), 1e0);
 
-    unsigned seed(10);
     std::mt19937 mt(seed);
     std::uniform_real_distribution<double> randreal(0e0, 1e0);
     for(auto i=0; i<100; ++i)
@@ -223,7 +225,6 @@ BOOST_AUTO_TEST_CASE(Vector3d_cross_product)
     BOOST_CHECK_EQUAL(vec3[1], 0e0);
     BOOST_CHECK_EQUAL(vec3[2], 1e0);
 
-    unsigned seed(10);
     std::mt19937 mt(seed);
     std::uniform_real_distribution<double> randreal(0e0, 1e0);
     for(auto i = 0; i<100; ++i)
@@ -243,9 +244,9 @@ BOOST_AUTO_TEST_CASE(Vector3d_cross_product)
         const double cos_theta = dot_prod(vec4, vec5) / length(vec4) / length(vec5);
         const double area = length(vec4) * length(vec5) * sin(acos(cos_theta));
 
-        BOOST_CHECK_SMALL(dot_prod(vec4, vec6), 1e-12);
-        BOOST_CHECK_SMALL(dot_prod(vec5, vec6), 1e-12);
-        BOOST_CHECK_CLOSE_FRACTION(length(vec6), area, 1e-12);
+        BOOST_CHECK_SMALL(dot_prod(vec4, vec6), tolerance);
+        BOOST_CHECK_SMALL(dot_prod(vec5, vec6), tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(length(vec6), area, tolerance);
     }
 }
 
@@ -260,20 +261,19 @@ BOOST_AUTO_TEST_CASE(Vector3d_rotation)
         const double theta = dtheta * i;
         const Vector3d vec3 = rotation(theta, vec2, vec1);
 
-        BOOST_CHECK_CLOSE(length(vec3), 1e0, 1e-12);
+        BOOST_CHECK_CLOSE(length(vec3), 1e0, tolerance);
         if(i == 50 || i == 150)
-            BOOST_CHECK_SMALL(vec3[0], 1e-12);
+            BOOST_CHECK_SMALL(vec3[0], tolerance);
         else
-            BOOST_CHECK_CLOSE(vec3[0], cos(theta), 1e-12);
+            BOOST_CHECK_CLOSE(vec3[0], cos(theta), tolerance);
 
         if(i == 100)
-            BOOST_CHECK_SMALL(vec3[1], 1e-12);
+            BOOST_CHECK_SMALL(vec3[1], tolerance);
         else
-            BOOST_CHECK_CLOSE(vec3[1], sin(theta), 1e-12);
+            BOOST_CHECK_CLOSE(vec3[1], sin(theta), tolerance);
 
-        BOOST_CHECK_SMALL(vec3[2], 1e-12);
+        BOOST_CHECK_SMALL(vec3[2], tolerance);
     }
-    unsigned seed(10);
     std::mt19937 mt(seed);
     std::uniform_real_distribution<double> randreal(0e0, 1e0);
  
@@ -289,22 +289,22 @@ BOOST_AUTO_TEST_CASE(Vector3d_rotation)
     const Vector3d vec5(normalize(Vector3d(x2, y2, z2)));
     const Vector3d axis = normalize(cross_prod(vec4, vec5));
 
-    BOOST_CHECK_CLOSE(length(vec4), 1e0, 1e-12);
-    BOOST_CHECK_CLOSE(length(vec5), 1e0, 1e-12);
-    BOOST_CHECK_CLOSE(length(axis), 1e0, 1e-12);
+    BOOST_CHECK_CLOSE(length(vec4), 1e0, tolerance);
+    BOOST_CHECK_CLOSE(length(vec5), 1e0, tolerance);
+    BOOST_CHECK_CLOSE(length(axis), 1e0, tolerance);
 
     for(auto i = 0; i<100; ++i)
     {
         const double theta = dtheta * i;
         const Vector3d vec6 = rotation(theta, axis, vec4);
 
-        BOOST_CHECK_CLOSE(length(vec6), 1e0, 1e-12);
+        BOOST_CHECK_CLOSE(length(vec6), 1e0, tolerance);
 
         const double dot = dot_prod(vec4, vec6);
 
         if(i == 50)
-            BOOST_CHECK_SMALL(dot, 1e-12);
+            BOOST_CHECK_SMALL(dot, tolerance);
         else
-            BOOST_CHECK_CLOSE(dot, cos(theta), 1e-12);
+            BOOST_CHECK_CLOSE(dot, cos(theta), tolerance);
     }
 }
