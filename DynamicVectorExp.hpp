@@ -144,7 +144,7 @@ template <class L,
               >::type*& = enabler>
 DynamicVectorSclMul<L> operator*(const L& lhs, const double rhs)
 {
-    return DynamicVectorSclMul<L>(lhs, rhs);
+    return DynamicVectorSclMul<L>(rhs, lhs);
 }
 
 template <class R,
@@ -153,7 +153,7 @@ template <class R,
               >::type*& = enabler>
 DynamicVectorSclMul<R> operator*(const double lhs, const R& rhs)
 {
-    return DynamicVectorSclMul<R>(rhs, lhs);
+    return DynamicVectorSclMul<R>(lhs, rhs);
 }
 
 template <class L,
@@ -162,7 +162,7 @@ template <class L,
               >::type*& = enabler>
 DynamicVectorSclDiv<L> operator/(const L& lhs, const double rhs)
 {
-    return DynamicVectorSclDiv<L>(rhs, lhs);
+    return DynamicVectorSclDiv<L>(lhs, rhs);
 }
 
 template <class L,
@@ -179,7 +179,7 @@ const double len_square(const L& l)
 
 template <class L,
           typename std::enable_if<
-              is_VectorExpression<typename L::value_trait>::value
+              is_DynamicVectorExpression<typename L::value_trait>::value
               >::type*& = enabler>
 const double length(const L& l)
 {
@@ -188,9 +188,8 @@ const double length(const L& l)
 
 template <class L, class R,
           typename std::enable_if<
-              is_VectorExpression<typename L::value_trait>::value&&
-              is_VectorExpression<typename R::value_trait>::value&&
-              is_SameSize<L::size, R::size>::value
+              is_DynamicVectorExpression<typename L::value_trait>::value&&
+              is_DynamicVectorExpression<typename R::value_trait>::value
               >::type*& = enabler>
 const double dot_prod(const L& lhs, const R& rhs)
 {

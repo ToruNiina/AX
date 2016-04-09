@@ -3,12 +3,16 @@
 #include "DynamicVectorExp.hpp"
 #include <iostream>
 #include <vector>
+#include <array>
 
 namespace ax
 {
 
 class RealDynamicVector
 {
+  public:
+    using value_trait = DynamicVector;
+
   public:
     RealDynamicVector(){}
     ~RealDynamicVector() = default;
@@ -30,6 +34,14 @@ class RealDynamicVector
         : values_(std::move(v))
     {}
 
+    template<std::size_t N>
+    RealDynamicVector(const std::array<double, N>& v)
+        : values_(N, 0e0)
+    {
+        for(std::size_t i=0; i<N; ++i)
+            values_[i] = v[i];
+    }
+
     RealDynamicVector(const RealDynamicVector& vec)
         : values_(vec.values_)
     {}
@@ -39,11 +51,26 @@ class RealDynamicVector
     {}
 
     template<class E,
-            typename std::enable_if<is_VectorExpression<
-                typename E::value_trait>::value>::type*& = enabler>
+            typename std::enable_if<
+                is_VectorExpression<typename E::value_trait>::value
+                >::type*& = enabler>
     RealDynamicVector(const E& vec)
     {
+//         this->values_.clear();
+        this->values_.resize(E::size, 0e0);
         for(std::size_t i=0; i<E::size; ++i)
+            this->values_.at(i) = vec[i];
+    }
+
+    template<class E,
+            typename std::enable_if<
+                is_DynamicVectorExpression<typename E::value_trait>::value
+                >::type*& = enabler>
+    RealDynamicVector(const E& vec)
+    {
+//         this->values_.clear();
+        this->values_.resize(vec.size(), 0e0);
+        for(std::size_t i=0; i<vec.size(); ++i)
             this->values_.at(i) = vec[i];
     }
 
@@ -74,11 +101,27 @@ class RealDynamicVector
     }
 
     template<class E,
-            typename std::enable_if<is_VectorExpression<
-                typename E::value_trait>::value>::type*& = enabler>
+            typename std::enable_if<
+                is_VectorExpression<typename E::value_trait>::value
+                >::type*& = enabler>
     RealDynamicVector& operator=(const E& vec)
     {
+//         this->values_.clear();
+        this->values_.resize(E::size, 0e0);
         for(std::size_t i=0; i<E::size; ++i)
+            this->values_.at(i) = vec[i];
+        return *this;
+    }
+
+    template<class E,
+            typename std::enable_if<
+                is_DynamicVectorExpression<typename E::value_trait>::value
+                >::type*& = enabler>
+    RealDynamicVector& operator=(const E& vec)
+    {
+//         this->values_.clear();
+        this->values_.resize(vec.size(), 0e0);
+        for(std::size_t i=0; i<vec.size(); ++i)
             this->values_.at(i) = vec[i];
         return *this;
     }
@@ -113,7 +156,7 @@ class RealDynamicVector
     } 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ operator -= ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // for dynamic += dynamic
+    // for dynamic -= dynamic
     template<class E, 
              typename std::enable_if<
                      is_DynamicVectorExpression<typename E::value_trait>::value
@@ -127,7 +170,7 @@ class RealDynamicVector
         return *this;
     }
 
-    // for dynamic += static
+    // for dynamic -= static
     template<class E, 
              typename std::enable_if<
                      is_VectorExpression<typename E::value_trait>::value
@@ -147,7 +190,7 @@ class RealDynamicVector
                  enabler>
     RealDynamicVector& operator*=(const E& exp)
     {
-        *this = DynamicVectorSclMul<RealDynamicVector>(*this, exp);
+        *this = DynamicVectorSclMul<RealDynamicVector>(exp, *this);
         return *this;
     } 
 
