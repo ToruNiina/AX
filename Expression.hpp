@@ -45,9 +45,9 @@ namespace ax
     template <typename T>
     class is_DynamicVectorExpression:public std::false_type{};
     template <>
-    class is_DynamicVectorExpression<Vector>:public std::true_type{};
+    class is_DynamicVectorExpression<DynamicVector>:public std::true_type{};
     template <>
-    class is_DynamicVectorExpression<VectorExp>:public std::true_type{};
+    class is_DynamicVectorExpression<DynamicVectorExp>:public std::true_type{};
 
     template <typename T>
     class is_DynamicMatrixExpression:public std::false_type{};
