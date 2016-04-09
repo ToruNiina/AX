@@ -121,18 +121,6 @@ class RealDynamicMatrix
     std::vector<std::vector<double>> values_;
 };
 
-std::ostream& operator<<(std::ostream& os, const RealDynamicMatrix mat)
-{
-    for(std::size_t i(0); i<mat.size_row(); ++i)
-    {
-        for(std::size_t j(0); j<mat.size_col(); ++j)
-            os << mat.at(i,j) << " ";
-        std::cout << std::endl;
-    }
-    return os;
-}
-
-
 }
 
 #endif /* AX_DYNAMIC_MATRIX */

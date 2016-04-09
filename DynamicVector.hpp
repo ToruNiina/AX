@@ -235,12 +235,5 @@ class RealDynamicVector
     std::vector<double> values_;
 };
 
-std::ostream& operator<<(std::ostream& os, const RealDynamicVector& vec)
-{
-    for(std::size_t i(0); i<vec.size(); ++i)
-        os << vec[i] << " ";
-    return os;
-}
-
 }
 #endif /* AX_DYNAMIC_VECTOR */

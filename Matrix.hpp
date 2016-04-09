@@ -140,18 +140,6 @@ namespace ax
 
             std::array<std::array<double, C>, R> values;
     };
-
-    template<std::size_t R, std::size_t C>
-    std::ostream& operator<<(std::ostream& os, const RealMatrix<R,C>& mat)
-    {
-        for(std::size_t i(0); i<R; ++i)
-        {
-            for(std::size_t j(0); j<C; ++j)
-                os << mat(i,j) << " ";
-            std::cout << std::endl;
-        }
-        return os;
-    }
 }
 
 #endif//AX_MATRIX_NxN

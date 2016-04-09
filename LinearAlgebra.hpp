@@ -1,6 +1,7 @@
 #ifndef AX_LINEAR_ALGEBRA_H
 #define AX_LINEAR_ALGEBRA_H
 #include "MatrixVectorMultiplication.hpp"
+#include "io.hpp"
 
 // reuquire Boost.math
 #include "VectorRotation.hpp"
