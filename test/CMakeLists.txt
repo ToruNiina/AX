@@ -3,7 +3,7 @@ set(TEST_NAMES
     test_static_vector
     test_dynamic_vector
     test_static_matrix
-#     test_dynamic_matrix
+    test_dynamic_matrix
     )
 
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/)
