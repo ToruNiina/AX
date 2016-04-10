@@ -29,6 +29,10 @@ class RealVector
             : values(v)
         {} 
 
+        RealVector(const RealVector<N>& v)
+            : values(v.values)
+        {} 
+
         template<class E,
                  typename std::enable_if<is_VectorExpression<
                      typename E::value_trait>::value>::type*& = enabler>
