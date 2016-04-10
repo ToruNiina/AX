@@ -1,10 +1,10 @@
 #ifndef AX_LINEAR_ALGEBRA_H
 #define AX_LINEAR_ALGEBRA_H
-#include "MatrixVectorMultiplication.hpp"
-#include "io.hpp"
+#include "src/MatrixVectorMultiplication.hpp"
+#include "src/io.hpp"
 
 // reuquire Boost.math
-#include "VectorRotation.hpp"
+#include "src/VectorRotation.hpp"
 
 namespace ax
 {
@@ -13,6 +13,6 @@ namespace ax
     using Matrix4  = RealMatrix<4,4>;
 }
 
-#include "JacobiMethod.hpp"
+#include "src/JacobiMethod.hpp"
 
 #endif //AX_LINEAR_ALGEBRA_H
