@@ -22,6 +22,9 @@ class DynamicMatrixAdd
         return l_(i, j) + r_(i, j);
     }
 
+    const std::size_t size_col() const {return l_.size_col();}
+    const std::size_t size_row() const {return l_.size_row();}
+
   private:
 
     const L& l_;
@@ -42,8 +45,11 @@ class DynamicMatrixSub
 
     const double operator()(const std::size_t i, const std::size_t j) const
     {
-        return l_(i, j) + r_(i, j);
+        return l_(i, j) - r_(i, j);
     }
+
+    const std::size_t size_col() const {return l_.size_col();}
+    const std::size_t size_row() const {return l_.size_row();}
 
   private:
 
@@ -63,14 +69,18 @@ class DynamicMatrixMul
         : l_(lhs), r_(rhs)
     {}
 
+    // l_.size_col == r_.size_row
     double operator()(const std::size_t i, const std::size_t j) const
     {
         double retval(0e0);
-        for(std::size_t k(0); k < r_.size(); ++k)
+        for(std::size_t k(0); k < l_.size_col(); ++k)
             retval += l_(i,k) * r_(k,j);
 
         return retval;
     }
+
+    const std::size_t size_col() const {return r_.size_col();}
+    const std::size_t size_row() const {return l_.size_row();}
 
   private:
 
@@ -86,18 +96,21 @@ class DynamicMatrixSclMul
     using value_trait = DynamicMatrixExp;
 
     DynamicMatrixSclMul(const double lhs, const R& rhs)
-        : l(lhs), r(rhs)
+        : l_(lhs), r_(rhs)
     {}
 
     double operator()(const std::size_t i, const std::size_t j) const
     {
-        return l * r(i,j);
+        return l_ * r_(i,j);
     }
+
+    const std::size_t size_col() const {return r_.size_col();}
+    const std::size_t size_row() const {return r_.size_row();}
 
   private:
 
-    const double l;
-    const R& r;
+    const double l_;
+    const R& r_;
 };
 
 template<class L>
@@ -108,18 +121,21 @@ class DynamicMatrixSclDiv
     using value_trait = DynamicMatrixExp;
 
     DynamicMatrixSclDiv(const L& lhs, const double rhs)
-        : l(lhs), r(rhs)
+        : l_(lhs), r_(rhs)
     {}
 
     const double operator()(const std::size_t i, const std::size_t j) const
     {
-        return l(i,j) / r;
+        return l_(i,j) / r_;
     }
+
+    const std::size_t size_col() const {return l_.size_col();}
+    const std::size_t size_row() const {return l_.size_row();}
 
   private:
 
-    const L& l;
-    const double r;
+    const L& l_;
+    const double r_;
 };
 
 template<class L>
@@ -130,17 +146,20 @@ class DynamicMatrixTranspose
     using value_trait = DynamicMatrixExp;
 
     DynamicMatrixTranspose(const L& lhs)
-        : l(lhs)
+        : l_(lhs)
     {}
 
     const double operator()(const std::size_t i, const std::size_t j) const
     {
-        return l(j, i);
+        return l_(j, i);
     }
+
+    const std::size_t size_col() const {return l_.size_row();}
+    const std::size_t size_row() const {return l_.size_col();}
 
   private:
 
-    const L& l;
+    const L& l_;
 };
 
 // =============== Dynamic * Dynamic ===============
