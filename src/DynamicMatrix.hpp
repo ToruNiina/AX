@@ -25,9 +25,21 @@ class RealDynamicMatrix
     RealDynamicMatrix(){};
     ~RealDynamicMatrix() = default;
 
-    RealDynamicMatrix(const std::size_t Col, const std::size_t Row)
+    RealDynamicMatrix(const std::size_t Row, const std::size_t Col)
         : values_(Row, std::vector<double>(Col, 0e0))
     {}
+
+    RealDynamicMatrix(const std::vector<std::vector<double>>& val)
+        : values_(val)
+    {
+        if(val.empty())       throw std::invalid_argument("empty data");
+        if(val.at(0).empty()) throw std::invalid_argument("empty data");
+
+        const std::size_t col_size = val.at(0).size();
+        for(auto iter = val.cbegin(); iter != val.cend(); ++iter)
+            if(iter->size() != col_size)
+                throw std::invalid_argument("invalid size");
+    }
 
     RealDynamicMatrix(const RealDynamicMatrix& mat)
         : values_(mat.values_)
@@ -37,27 +49,31 @@ class RealDynamicMatrix
         : values_(std::move(mat.values_))
     {}
 
-    template<class E, typename std::enable_if<
-            is_DynamicMatrixExpression<typename E::value_trait>::type
-        >::type*& = enabler>
+    template<class E,
+             typename std::enable_if<
+                 is_DynamicMatrixExpression<typename E::value_trait>::value
+                 >::type*& = enabler>
     RealDynamicMatrix(const E& exp)
+        : values_(exp.size_row(), std::vector<double>(exp.size_col(), 0e0))
     {
-        for(auto i=0; i<exp.values_.size(); ++i)
-            for(auto j=0; j<exp.values_.size(); ++j)
-                this->values_.at(i).at(j) = exp.values_.at(i).at(j);
+        for(auto i=0; i<exp.size_row(); ++i)
+            for(auto j=0; j<exp.size_col(); ++j)
+                (*this)(i, j) = exp(i, j);
     }
 
-    template<class E, typename std::enable_if<
-            is_MatrixExpression<typename E::value_trait>::type
-        >::type*& = enabler>
+    template<class E,
+             typename std::enable_if<
+                 is_MatrixExpression<typename E::value_trait>::value
+                 >::type*& = enabler>
     RealDynamicMatrix(const E& exp)
+        : values_(E::row, std::vector<double>(E::col, 0e0))
     {
         for(auto i=0; i<E::row; ++i)
             for(auto j=0; j<E::col; ++j)
-                this->values_.at(i).at(j) = exp.values_(i, j);
+                 (*this)(i, j) = exp(i, j);
     }
 
-    // operator= 
+    // operator = 
     RealDynamicMatrix& operator=(const RealDynamicMatrix& mat)
     {
         values_ = mat.values_;
@@ -65,21 +81,32 @@ class RealDynamicMatrix
     }
 
     template<class E, typename std::enable_if<
-            is_DynamicMatrixExpression<typename E::value_trait>::type
+            is_DynamicMatrixExpression<typename E::value_trait>::value
         >::type*& = enabler>
     RealDynamicMatrix& operator=(const E& exp)
     {
-        for(auto i=0; i<exp.values_.size(); ++i)
-            for(auto j=0; j<exp.values_.size(); ++j)
-                this->values_.at(i).at(j) = exp.values_.at(i).at(j);
+        if(exp.size_row() != this->size_row() ||
+           exp.size_col() != this->size_col())
+        {
+            throw std::invalid_argument("different size matrix");
+        }
+
+        for(auto i=0; i<exp.size_row(); ++i)
+            for(auto j=0; j<exp.size_col(); ++j)
+                this->values_.at(i).at(j) = exp(i, j);
         return *this;
     }
 
     template<class E, typename std::enable_if<
-            is_MatrixExpression<typename E::value_trait>::type
+            is_MatrixExpression<typename E::value_trait>::value
         >::type*& = enabler>
     RealDynamicMatrix& operator=(const E& exp)
     {
+        if(E::row != this->size_row() || E::col != this->size_col())
+        {
+            throw std::invalid_argument("different size matrix");
+        }
+
         for(auto i=0; i<E::row; ++i)
             for(auto j=0; j<E::col; ++j)
                 this->values_.at(i).at(j) = exp(i,j);
