@@ -135,6 +135,15 @@ namespace ax
                 return values[i][j];
             }
 
+            double at(const std::size_t i, const std::size_t j) const
+            {
+                return values.at(i).at(j);
+            }
+
+            double& at(const std::size_t i, const std::size_t j)
+            {
+                return values.at(i).at(j);
+            }
 
         private:
 
