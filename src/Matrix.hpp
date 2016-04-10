@@ -6,6 +6,7 @@
 
 namespace ax
 {
+
     template<std::size_t R, std::size_t C>
     class RealMatrix
     {
@@ -23,11 +24,12 @@ namespace ax
             */
 
         public:
+            // ~~~~~~~~~~ ctor~~~~~~~~~~~~~~~~~~~~~
 
             RealMatrix()
             {
                 for(std::size_t i(0); i<R; ++i)
-                    values[i].fill(0e0);
+                    values_[i].fill(0e0);
             }
 
             // to make Identity matrix or something
@@ -36,10 +38,18 @@ namespace ax
                 for(std::size_t i(0); i<R; ++i)
                     for(std::size_t j(0); j<C; ++j)
                         if(i == j)
-                            values[i][i] = d;
+                            values_[i][i] = d;
                         else
-                            values[i][j] = 0e0;
+                            values_[i][j] = 0e0;
             }
+
+            RealMatrix(const RealMatrix<R, C>& mat)
+                : values_(mat.values_)
+            {}
+
+            RealMatrix(const std::array<std::array<double, C>, R>& val)
+                : values_(val)
+            {}
 
             template<class E,
                      typename std::enable_if<
@@ -49,10 +59,26 @@ namespace ax
                          >::type*& = enabler>
             RealMatrix(const E& mat)
             {
-                for(std::size_t i(0); i<R; ++i)
-                    for(std::size_t j(0); j<C; ++j)
-                       (*this)(i,j) = mat(i,j);
+                 for(std::size_t i(0); i<row; ++i)
+                    for(std::size_t j(0); j<col; ++j)
+                        values_[i][j] = mat(i, j);
             }
+
+            template<class E,
+                     typename std::enable_if<
+                         is_DynamicMatrixExpression<typename E::value_trait>::value
+                         >::type*& = enabler>
+            RealMatrix(const E& mat)
+            {
+                if(mat.size_col() != col || mat.size_row() != row)
+                    throw std::invalid_argument("different size dynamic matrix");
+
+                for(std::size_t i(0); i<row; ++i)
+                    for(std::size_t j(0); j<col; ++j)
+                        values_[i][j] = mat(i, j);
+            }
+
+            // ~~~~~~~~~~~~~~~~~~~~~ operator ~~~~~~~~~~~~~~~~~~~~~~~~~
 
             template<class E,
                      typename std::enable_if<
@@ -65,6 +91,21 @@ namespace ax
                 for(std::size_t i(0); i<R; ++i)
                     for(std::size_t j(0); j<C; ++j)
                        (*this)(i,j) = mat(i,j);
+                return *this;
+            }
+
+            template<class E,
+                     typename std::enable_if<
+                         is_DynamicMatrixExpression<typename E::value_trait>::value
+                         >::type*& = enabler>
+            RealMatrix& operator=(const E& mat)
+            {
+                if(mat.size_col() != col || mat.size_row() != row)
+                    throw std::invalid_argument("different size dynamic matrix");
+
+                for(std::size_t i(0); i<row; ++i)
+                    for(std::size_t j(0); j<col; ++j)
+                        values_[i][j] = mat(i, j);
                 return *this;
             }
 
@@ -127,28 +168,29 @@ namespace ax
 
             double operator()(const std::size_t i, const std::size_t j) const
             {
-                return values[i][j];
+                return values_[i][j];
             }
 
             double& operator()(const std::size_t i, const std::size_t j)
             {
-                return values[i][j];
+                return values_[i][j];
             }
 
             double at(const std::size_t i, const std::size_t j) const
             {
-                return values.at(i).at(j);
+                return values_.at(i).at(j);
             }
 
             double& at(const std::size_t i, const std::size_t j)
             {
-                return values.at(i).at(j);
+                return values_.at(i).at(j);
             }
 
         private:
 
-            std::array<std::array<double, C>, R> values;
+            std::array<std::array<double, C>, R> values_;
     };
+
 }
 
 #endif//AX_MATRIX_NxN
