@@ -4,9 +4,11 @@ set(TEST_NAMES
     test_dynamic_vector
     test_static_matrix
     test_dynamic_matrix
+    test_vector_matrix
     )
 
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/)
+include_directories("${CMAKE_SOURCE_DIR}/src")
 
 set(test_library_dependencies)
 find_library(BOOST_UNITTEST_FRAMEWORK_LIBRARY boost_unit_test_framework)
