@@ -11,7 +11,7 @@ namespace ax
         public:
 
             using value_trait = VectorExp;
-            constexpr static std::size_t size = V::size;
+            constexpr static std::size_t size = M::row;
 
             MatVecMul(const M& lhs, const V& rhs)
                 :mat(lhs), vec(rhs)
@@ -20,7 +20,7 @@ namespace ax
             double operator[](const std::size_t i) const
             {
                 double retval(0e0);
-                for(std::size_t j(0); j<size; ++j)
+                for(std::size_t j(0); j<V::size; ++j)
                     retval += mat(i, j) * vec[j];
                 return retval;
                 // mat(i,0) * vec[0] + mat(i,1) * vec[1] + mat(i,2) * vec[2]
@@ -48,7 +48,7 @@ namespace ax
         public:
 
             using value_trait = VectorExp;
-            constexpr static std::size_t size = V::size;
+            constexpr static std::size_t size = M::col;
 
             VecMatMul(const V& lhs, const M& rhs)
                 :vec(lhs), mat(rhs) 
@@ -57,7 +57,7 @@ namespace ax
             double operator[](const std::size_t i) const
             {
                 double retval(0e0);
-                for(std::size_t j(0); j<size; ++j)
+                for(std::size_t j(0); j<V::size; ++j)
                     retval += vec[j] * mat(j,i);
                 return retval;
                 // vec[0] * mat(0, i) + vec[1] * mat(1, i) + vec[2] * mat(2, i)
