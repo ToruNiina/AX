@@ -7,6 +7,7 @@ set(TEST_NAMES
     test_vector_matrix
     test_LUDecomposition
     test_2or3_inverse_matrix
+    test_JacobiMethod
     )
 
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/)

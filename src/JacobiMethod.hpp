@@ -5,6 +5,7 @@
 #include <cmath>
 #include "Matrix.hpp"
 #include "Vector.hpp"
+#include "io.hpp"
 
 namespace ax
 {
