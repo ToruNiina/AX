@@ -263,6 +263,12 @@ BOOST_AUTO_TEST_CASE(MatrixNd_Scalar_Maltiple)
     for(std::size_t i=0; i<Dim_N; ++i)
         for(std::size_t j=0; j<Dim_M; ++j)
             BOOST_CHECK_EQUAL(mat6(i,j), rand1[i][j] * 2e0);
+
+    MatrixNMd<Dim_N, Dim_M> mat7(mat1);
+    mat7 *= 2e0;
+    for(std::size_t i=0; i<Dim_N; ++i)
+        for(std::size_t j=0; j<Dim_M; ++j)
+            BOOST_CHECK_EQUAL(mat7(i,j), rand1[i][j] * 2e0);
 }
 
 BOOST_AUTO_TEST_CASE(MatrixNd_Scalar_Division)
@@ -295,6 +301,12 @@ BOOST_AUTO_TEST_CASE(MatrixNd_Scalar_Division)
     for(std::size_t i=0; i<Dim_N; ++i)
         for(std::size_t j=0; j<Dim_M; ++j)
             BOOST_CHECK_EQUAL(mat4(i,j), rand1[i][j] / 2e0);
+
+    MatrixNMd<Dim_N, Dim_M> mat5(mat1);
+    mat5 /= 2e0;
+    for(std::size_t i=0; i<Dim_N; ++i)
+        for(std::size_t j=0; j<Dim_M; ++j)
+            BOOST_CHECK_EQUAL(mat5(i,j), rand1[i][j] / 2e0);
 }
 
 BOOST_AUTO_TEST_CASE(MatrixNd_Multiple)
