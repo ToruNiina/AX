@@ -146,20 +146,12 @@ namespace ax
                 return *this;
             }
 
-            template<class E,
-                     typename std::enable_if<
-                         is_ScalarType<typename E::value_trait>::value
-                         >::type*& = enabler>
             RealMatrix& operator*=(const double rhs)
             {
                 *this = MatrixSclMul<RealMatrix>(rhs, *this);
                 return *this;
             }
 
-            template<class E,
-                     typename std::enable_if<
-                         is_ScalarType<typename E::value_trait>::value
-                         >::type*& = enabler>
             RealMatrix& operator/=(const double rhs)
             {
                 *this = MatrixSclDiv<RealMatrix>(*this, rhs);
