@@ -5,6 +5,7 @@ set(TEST_NAMES
     test_static_matrix
     test_dynamic_matrix
     test_vector_matrix
+    test_LUDecomposition
     )
 
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/)

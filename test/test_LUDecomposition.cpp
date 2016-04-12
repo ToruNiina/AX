@@ -1,37 +1,43 @@
-#include "LUDecomposition.hpp"
-// #include "io.hpp"
-using namespace ax;
+#define BOOST_TEST_MODULE "test_LUDecomposition"
 
-int main()
+#ifdef UNITTEST_FRAMEWORK_LIBRARY_EXIST
+#include <boost/test/unit_test.hpp>
+#else
+#define BOOST_TEST_NO_LIB
+#include <boost/test/included/unit_test.hpp>
+#endif
+
+#include "test_Defs.hpp"
+using ax::test::tolerance;
+using ax::test::seed;
+
+#include <random>
+
+#include "../src/LUDecomposition.hpp"
+
+template<std::size_t N, std::size_t M>
+using RealMatrix = ax::RealMatrix<N,M>;
+
+BOOST_AUTO_TEST_CASE(LUDecomposition)
 {
     RealMatrix<4,4> mat;
-    mat(0,0) =  8e0;
-    mat(0,1) = 16e0;
-    mat(0,2) = 24e0;
-    mat(0,3) = 32e0;
 
-    mat(1,0) =  2e0;
-    mat(1,1) =  7e0;
-    mat(1,2) = 12e0;
-    mat(1,3) = 17e0;
+    std::mt19937 mt(seed);
+    std::uniform_real_distribution<double> randreal(0e0, 1e0);
 
-    mat(2,0) =  6e0;
-    mat(2,1) = 17e0;
-    mat(2,2) = 32e0;
-    mat(2,3) = 59e0;
+    std::array<std::array<double, 4>, 4> rand1;
+    for(std::size_t i=0; i<4; ++i)
+        for(std::size_t j=0; j<4; ++j)
+            mat(i,j) = rand1[i][j] = randreal(mt);
 
-    mat(3,0) =  7e0;
-    mat(3,1) = 22e0;
-    mat(3,2) = 46e0;
-    mat(3,3) =105e0;
-
-    StaticLUDecomposer<RealMatrix<4,4>> solver(mat);
+    ax::StaticLUDecomposer<RealMatrix<4,4>> solver(mat);
     solver.solve();
 
     const RealMatrix<4,4> L = solver.get_L();
     const RealMatrix<4,4> U = solver.get_U();
     const RealMatrix<4,4> A = L * U;
 
+    // ============= test for L ============= 
     for(std::size_t i = 0; i<4; ++i)
         BOOST_CHECK_EQUAL(L(i,i), 1e0);
 
@@ -41,23 +47,14 @@ int main()
             BOOST_CHECK_EQUAL(L(i,j), 0e0);
         }
 
+    // ============= test for U ============= 
     for(std::size_t i = 0; i<4; ++i)
-        for(std::size_t j = 0; j<=i; ++j)
+        for(std::size_t j = 0; j<i; ++j)
         {
             BOOST_CHECK_EQUAL(U(i,j), 0e0);
         }
 
-//     std::cout << "M: " << std::endl;
-//     std::cout << mat << std::endl;
-//
-//     std::cout << "L: " << std::endl;
-//     std::cout << L << std::endl;
-//
-//     std::cout << "U: " << std::endl;
-//     std::cout << U << std::endl;
-//
-//     std::cout << "A: " << std::endl;
-//     std::cout << A << std::endl;
-
-    return 0;
+    for(std::size_t i=0; i<4; ++i)
+        for(std::size_t j=0; j<4; ++j)
+            BOOST_CHECK_CLOSE(A(i,j), mat(i,j), tolerance);
 }
