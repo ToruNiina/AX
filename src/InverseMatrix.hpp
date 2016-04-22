@@ -32,7 +32,6 @@ const double determinant(const L& lhs)
            lhs(1,0) * lhs(0,1) * lhs(2,2);
 }
 
-// XXX: for 2x2 matrix, cost of temporal object is small
 template<class L, typename std::enable_if<
              is_MatrixExpression<typename L::value_trait>::value&&
              is_SameSize<L::col, L::row>::value&&
@@ -49,7 +48,6 @@ RealMatrix<L::row, L::col> inverse(const L& lhs)
     return inv;
 }
 
-// XXX: for 3x3 matrix, cost of temporal object is small
 template<class L, typename std::enable_if<
              is_MatrixExpression<typename L::value_trait>::value&&
              is_SameSize<L::col, L::row>::value&&
