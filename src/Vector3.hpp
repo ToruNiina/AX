@@ -29,6 +29,10 @@ namespace ax
                 : values(array)
             {} 
 
+            RealVector(const RealVector<3>& v)
+                : values(v.values)
+            {} 
+
             template<class E, 
                      typename std::enable_if<
                          is_VectorExpression<typename E::value_trait>::value&&
@@ -100,6 +104,16 @@ namespace ax
             double& operator[](const std::size_t i)
             {
                 return values[i];
+            }
+
+            double at(const std::size_t i) const
+            {
+                return values.at(i);
+            }
+
+            double& at(const std::size_t i)
+            {
+                return values.at(i);
             }
 
         private:

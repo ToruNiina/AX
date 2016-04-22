@@ -34,8 +34,10 @@ class RealVector
         {} 
 
         template<class E,
-                 typename std::enable_if<is_VectorExpression<
-                     typename E::value_trait>::value>::type*& = enabler>
+                 typename std::enable_if<
+                     is_VectorExpression<typename E::value_trait>::value&&
+                     is_SameSize<size, E::size>::value
+                     >::type*& = enabler>
         RealVector(const E& exp)
         {
             for(auto i(0); i<size; ++i)
@@ -43,8 +45,10 @@ class RealVector
         } 
 
         template<class E, 
-                 typename std::enable_if<is_VectorExpression<
-                     typename E::value_trait>::value>::type*& = enabler>
+                 typename std::enable_if<
+                     is_VectorExpression<typename E::value_trait>::value&&
+                     is_SameSize<size, E::size>::value
+                     >::type*& = enabler>
         RealVector& operator=(const E& exp)
         {
             for(auto i(0); i<size; ++i)
@@ -53,8 +57,10 @@ class RealVector
         } 
 
         template<class E, 
-                 typename std::enable_if<is_VectorExpression<
-                     typename E::value_trait>::value>::type*& = enabler>
+                 typename std::enable_if<
+                     is_VectorExpression<typename E::value_trait>::value&&
+                     is_SameSize<size, E::size>::value
+                     >::type*& = enabler>
         RealVector& operator+=(const E& exp)
         {
             *this = VectorAdd<RealVector, E>(*this, exp);
@@ -63,8 +69,10 @@ class RealVector
 
 
         template<class E, 
-                 typename std::enable_if<is_VectorExpression<
-                     typename E::value_trait>::value>::type*& = enabler>
+                 typename std::enable_if<
+                     is_VectorExpression<typename E::value_trait>::value&&
+                     is_SameSize<size, E::size>::value
+                     >::type*& = enabler>
         RealVector& operator-=(const E& exp)
         {
             *this = VectorSub<RealVector, E>(*this, exp);
@@ -89,7 +97,7 @@ class RealVector
             return *this;
         } 
 
-        double operator[](const std::size_t i) const
+        const double& operator[](const std::size_t i) const
         {
             return values[i];
         }
@@ -97,6 +105,16 @@ class RealVector
         double& operator[](const std::size_t i)
         {
             return values[i];
+        }
+
+        const double& at(const std::size_t i) const
+        {
+            return values.at(i);
+        }
+
+        double& at(const std::size_t i)
+        {
+            return values.at(i);
         }
 
     private:
