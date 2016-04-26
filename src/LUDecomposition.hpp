@@ -103,91 +103,91 @@ void Doolittle<M>::rec_solve(const std::size_t step,
 }
 
 // ~~~~~~~~~~~~~~~~~~ Dynamic Size Matrix ~~~~~~~~~~~~~~~~~~~~
-class DynamicDoolittle;
+// class DynamicDoolittle;
+//
+// template<class Solver = DynamicDoolittle>
+// class DynamicLUDecomposer
+// {
+//   public:
+//     DynamicLUDecomposer(const RealDynamicMatrix& mat)
+//         : mat_(mat)
+//     {}
+//     ~DynamicLUDecomposer() = default;
+//
+//     void  solve(){Solver::solve(mat_, L_, U_);}
+//
+//     const RealDynamicMatrix get_L() const {return L_;}
+//     const RealDynamicMatrix get_U() const {return U_;}
+//
+//   private:
+//
+//     const RealDynamicMatrix& mat_;
+//
+//     RealDynamicMatrix L_;
+//     RealDynamicMatrix U_;
+// };
 
-template<class Solver = DynamicDoolittle>
-class DynamicLUDecomposer
-{
-  public:
-    DynamicLUDecomposer(const RealDynamicMatrix& mat)
-        : mat_(mat)
-    {}
-    ~DynamicLUDecomposer() = default;
-
-    void  solve(){Solver::solve(mat_, L_, U_);}
-
-    const RealDynamicMatrix get_L() const {return L_;}
-    const RealDynamicMatrix get_U() const {return U_;}
-
-  private:
-
-    const RealDynamicMatrix& mat_;
-
-    RealDynamicMatrix L_;
-    RealDynamicMatrix U_;
-};
-
-class DynamicDoolittle
-{
-  public:
-    static void solve(const RealDynamicMatrix& mat,
-                            RealDynamicMatrix& L,
-                            RealDynamicMatrix& U);
-
-  private:
-    static void rec_solve(const std::size_t step, 
-                          RealDynamicMatrix& LU);
-};
-
-void DynamicDoolittle::solve(const RealDynamicMatrix& mat,
-                                   RealDynamicMatrix& L,
-                                   RealDynamicMatrix& U)
-{
-    RealDynamicMatrix LU = mat;
-    // TODO: exchange if 0 devide occurs
-
-    DynamicDoolittle::rec_solve(0, LU);
-
-    // ~~~~~~~ store values in L and U ~~~~~~~
-    for(std::size_t i=0; i < mat.size_row(); ++i)
-    {
-        L(i, i) = 1e0;
-        for(std::size_t j = 0; j < i; ++j)
-            L(i, j) = LU(i, j);
-
-        for(std::size_t j = i+1; j < mat.size_col(); ++j)
-            L(i, j) = 0e0;
-    }
-    for(std::size_t i=0; i < mat.size_row(); ++i)
-    {
-        for(std::size_t j = 0; j < i; ++j)
-            U(i, j) = 0e0;
-
-        for(std::size_t j = i; j < mat.size_col(); ++j)
-            U(i, j) = LU(i, j);
-    }
-    return;
-}
-
-void DynamicDoolittle::rec_solve(const std::size_t step,
-                                 RealDynamicMatrix& LU)
-{
-    if(step >= LU.size_row() - 1)
-        return;
-    else
-    {
-        const double inv_nn = 1e0 / LU(step,step);
-        for(std::size_t i = step+1; i<LU.size_row(); ++i)
-            LU(i,step) = LU(i,step) * inv_nn;
-
-        for(std::size_t i = step+1; i<LU.size_row(); ++i)
-            for(std::size_t j = step+1; j<LU.size_col(); ++j)
-            {
-                LU(i,j) = LU(i,j) - (LU(step,j) * LU(i,step));
-            }
-        return rec_solve(step + 1, LU);
-    }
-}
+// class DynamicDoolittle
+// {
+//   public:
+//     static void solve(const RealDynamicMatrix& mat,
+//                             RealDynamicMatrix& L,
+//                             RealDynamicMatrix& U);
+//
+//   private:
+//     static void rec_solve(const std::size_t step, 
+//                           RealDynamicMatrix& LU);
+// };
+//
+// void DynamicDoolittle::solve(const RealDynamicMatrix& mat,
+//                                    RealDynamicMatrix& L,
+//                                    RealDynamicMatrix& U)
+// {
+//     RealDynamicMatrix LU = mat;
+//     // TODO: exchange if 0 devide occurs
+//
+//     DynamicDoolittle::rec_solve(0, LU);
+//
+//     // ~~~~~~~ store values in L and U ~~~~~~~
+//     for(std::size_t i=0; i < mat.size_row(); ++i)
+//     {
+//         L(i, i) = 1e0;
+//         for(std::size_t j = 0; j < i; ++j)
+//             L(i, j) = LU(i, j);
+//
+//         for(std::size_t j = i+1; j < mat.size_col(); ++j)
+//             L(i, j) = 0e0;
+//     }
+//     for(std::size_t i=0; i < mat.size_row(); ++i)
+//     {
+//         for(std::size_t j = 0; j < i; ++j)
+//             U(i, j) = 0e0;
+//
+//         for(std::size_t j = i; j < mat.size_col(); ++j)
+//             U(i, j) = LU(i, j);
+//     }
+//     return;
+// }
+//
+// void DynamicDoolittle::rec_solve(const std::size_t step,
+//                                  RealDynamicMatrix& LU)
+// {
+//     if(step >= LU.size_row() - 1)
+//         return;
+//     else
+//     {
+//         const double inv_nn = 1e0 / LU(step,step);
+//         for(std::size_t i = step+1; i<LU.size_row(); ++i)
+//             LU(i,step) = LU(i,step) * inv_nn;
+//
+//         for(std::size_t i = step+1; i<LU.size_row(); ++i)
+//             for(std::size_t j = step+1; j<LU.size_col(); ++j)
+//             {
+//                 LU(i,j) = LU(i,j) - (LU(step,j) * LU(i,step));
+//             }
+//         return rec_solve(step + 1, LU);
+//     }
+// }
 
 }
 #endif /* AX_LU_DECOMPOSE_H */
