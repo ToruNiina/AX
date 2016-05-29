@@ -11,11 +11,13 @@ namespace ax
     class MatrixExp{};
     class Vector{};
     class VectorExp{};
+    class AVXVector{};
 
     class DynamicMatrix{};
     class DynamicMatrixExp{};
     class DynamicVector{};
     class DynamicVectorExp{};
+
 
     template <typename T>
     class is_MatrixExpression:public std::false_type{};
@@ -30,6 +32,11 @@ namespace ax
     class is_VectorExpression<Vector>:public std::true_type{};
     template <>
     class is_VectorExpression<VectorExp>:public std::true_type{};
+
+    template <typename T>
+    class is_AVXVectorExpression : public std::false_type{};
+    template <>
+    class is_AVXVectorExpression<AVXVector> : public std::true_type{};
 
     template <std::size_t LN, std::size_t RN>
     class is_SameSize: public std::false_type{};
