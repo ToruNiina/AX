@@ -3,7 +3,6 @@
 #include "Vector.hpp"
 
 #include <cassert>
-#include <xmmintrin.h>
 #include <immintrin.h>
 
 namespace ax
@@ -88,7 +87,7 @@ class AVXVector3d
     AVXVector3d& operator-=(const E& exp)
     {
         const __m256d ex = _mm256_set_pd(0e0, exp[2], exp[1], exp[0]);
-        values_ = _mm256_sub_pd(ex, values_);
+        values_ = _mm256_sub_pd(values_, ex);
         return *this;
     } 
 
