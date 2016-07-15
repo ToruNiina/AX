@@ -5,63 +5,65 @@
 
 namespace ax
 {
-    extern void* enabler;
+    extern void* enabler; //never defined
 
-    class Matrix{};
-    class MatrixExp{};
-    class Vector{};
-    class VectorExp{};
-    class AVXVector{};
+    using dimention_type = int;
 
-    class DynamicMatrix{};
-    class DynamicMatrixExp{};
-    class DynamicVector{};
-    class DynamicVectorExp{};
+    struct operator_tag{};
+    struct matrix_tag{};
+    struct matrix_expression_tag{};
+    struct vector_tag{};
+    struct vector_expression_tag{};
+    struct avx_operation_tag{};
 
-
-    template <typename T>
-    class is_MatrixExpression:public std::false_type{};
-    template <>
-    class is_MatrixExpression<Matrix>:public std::true_type{};
-    template <>
-    class is_MatrixExpression<MatrixExp>: public std::true_type{};
+    template <dimention_type I_dim>
+    struct is_static_dimention{constexpr static bool value = I_dim >= 0;};
+    template <dimention_type I_dim>
+    struct is_dynamic_dimention{constexpr static bool value = I_dim < 0;};
 
     template <typename T>
-    class is_VectorExpression:public std::false_type{};
+    struct is_operator_struct : public std::false_type{};
     template <>
-    class is_VectorExpression<Vector>:public std::true_type{};
-    template <>
-    class is_VectorExpression<VectorExp>:public std::true_type{};
+    struct is_operator_struct<operator_tag> : public std::true_type{};
 
     template <typename T>
-    class is_AVXVectorExpression : public std::false_type{};
+    struct is_matrix_expression: public std::false_type{};
     template <>
-    class is_AVXVectorExpression<AVXVector> : public std::true_type{};
-
-    template <std::size_t LN, std::size_t RN>
-    class is_SameSize: public std::false_type{};
-    template <std::size_t LN>
-    class is_SameSize<LN, LN>: public std::true_type{};
+    struct is_matrix_expression<matrix_tag>: public std::true_type{};
+    template <>
+    struct is_matrix_expression<matrix_expression_tag>: public std::true_type{};
 
     template <typename T>
-    class is_ScalarType: public std::false_type{};
+    struct is_vector_expression: public std::false_type{};
     template <>
-    class is_ScalarType<double>: public std::true_type{};
+    struct is_vector_expression<vector_tag>: public std::true_type{};
+    template <>
+    struct is_vector_expression<vector_expression_tag>: public std::true_type{};
 
-    // =============================== dynamic =================================
-    template <typename T>
-    class is_DynamicVectorExpression:public std::false_type{};
-    template <>
-    class is_DynamicVectorExpression<DynamicVector>:public std::true_type{};
-    template <>
-    class is_DynamicVectorExpression<DynamicVectorExp>:public std::true_type{};
+    template <dimention_type I_ldim, dimention_type I_rdim>
+    struct is_same_dimention: public std::false_type{};
+    template <dimention_type I_dim>
+    struct is_same_dimention<I_dim, I_dim>: public std::true_type{};
 
-    template <typename T>
-    class is_DynamicMatrixExpression:public std::false_type{};
-    template <>
-    class is_DynamicMatrixExpression<DynamicMatrix>:public std::true_type{};
-    template <>
-    class is_DynamicMatrixExpression<DynamicMatrixExp>: public std::true_type{};
+    template <dimention_type I_dim>
+    struct is_scalar{constexpr static bool value = (I_dim == 0);};
+
+    template <typename T, typename T_vec>
+    struct is_scalar_type
+    {
+        constexpr static bool value =
+            std::is_same<T, typename T_vec::elem_t>::value;
+    };
+
+    template <typename T_lhs, typename T_rhs>
+    struct is_same_vector
+    {
+        constexpr static bool value =
+            is_vector_expression<typename T_lhs::tag>::value&&
+            is_vector_expression<typename T_rhs::tag>::value&&
+            is_same_dimention<T_lhs::dim, T_rhs::dim>::value&&
+            std::is_same<typename T_lhs::elem_t, typename T_rhs::elem_t>::value;
+    };
 
 }
 #endif //AX_MATRIX_EXPRESSION_H

@@ -1,124 +1,121 @@
 #ifndef AX_VECTOR_H
 #define AX_VECTOR_H
 #include <array>
+#include <vector>
 #include <iostream>
 #include "VectorExp.hpp"
 
 namespace ax
 {
-template<std::size_t N>
-class RealVector
+
+// static dimention case
+template<typename T_elem, int I_dim,
+         typename std::enable_if<is_static_dimention<I_dim>::value
+             >::type*& = enabler>
+class Vector
 {
-    public:
-        using value_trait = Vector;
-        constexpr static std::size_t size = N;
+  public:
+    // traits
+    using tag    = vector_tag;
+    using elem_t = T_elem;
+    constexpr static std::size_t dim = I_dim;
 
-    public:
+    using container_t = std::array<elem_t, dim>;
+    using self_type   = Vector<elem_t, dim>;
 
-        RealVector()
-        {
-            values.fill(0e0);
-        }
+  public:
 
-        RealVector(const double d)
-        {
-            values.fill(d);
-        } 
+    Vector() : values_{{}}{}
+    ~Vector() = default;
+    Vector(const elem_t d){values_.fill(d);} 
+    Vector(const container_t& v) : values_(v){} 
+    Vector(const self_type& v): values_(v.values_){} 
+    Vector(const std::vector<elem_t>& vec)
+    {
+        if(vec.size() < dim) vec.resize(dim);
+        for(std::size_t i(0); i<dim; ++i) values_[i] = vec[i];
+    }
 
-        RealVector(const std::array<double, N>& v)
-            : values(v)
-        {} 
+    template<typename ... T_args,
+             typename std::enable_if<sizeof...(T_args) == dim>::type*& = enabler>
+    Vector(T_args ... args) : values_{{args...}}
+    {
+        ;
+    }
 
-        RealVector(const RealVector<N>& v)
-            : values(v.values)
-        {} 
+    template<class T_expr,
+             typename std::enable_if<
+                 is_vector_expression<typename T_expr::tag>::value&&
+                 is_same_dimention<dim, T_expr::dim>::value
+                 >::type*& = enabler>
+    Vector(const T_expr& expr)
+    {
+        for(std::size_t i(0); i<dim; ++i) (*this)[i] = expr[i];
+    }
 
-        template<class E,
-                 typename std::enable_if<
-                     is_VectorExpression<typename E::value_trait>::value&&
-                     is_SameSize<size, E::size>::value
-                     >::type*& = enabler>
-        RealVector(const E& exp)
-        {
-            for(auto i(0); i<size; ++i)
-                (*this)[i] = exp[i];
-        } 
+    template<class T_expr,
+             typename std::enable_if<
+                 is_vector_expression<typename T_expr::tag>::value&&
+                 is_same_dimention<dim, T_expr::dim>::value
+                 >::type*& = enabler>
+    Vector& operator=(const T_expr& expr)
+    {
+        for(auto i(0); i<dim; ++i) (*this)[i] = expr[i];
+        return *this;
+    }
 
-        template<class E, 
-                 typename std::enable_if<
-                     is_VectorExpression<typename E::value_trait>::value&&
-                     is_SameSize<size, E::size>::value
-                     >::type*& = enabler>
-        RealVector& operator=(const E& exp)
-        {
-            for(auto i(0); i<size; ++i)
-                (*this)[i] = exp[i];
-            return *this;
-        } 
+    template<class T_expr,
+             typename std::enable_if<
+                 is_vector_expression<typename T_expr::tag>::value&&
+                 is_same_dimention<dim, T_expr::dim>::value
+                 >::type*& = enabler>
+    Vector& operator+=(const T_expr& expr)
+    {
+        return *this = (*this + expr);
+    }
 
-        template<class E, 
-                 typename std::enable_if<
-                     is_VectorExpression<typename E::value_trait>::value&&
-                     is_SameSize<size, E::size>::value
-                     >::type*& = enabler>
-        RealVector& operator+=(const E& exp)
-        {
-            *this = VectorAdd<RealVector, E>(*this, exp);
-            return *this;
-        } 
+    template<class T_expr,
+             typename std::enable_if<
+                 is_vector_expression<typename T_expr::tag>::value&&
+                 is_same_dimention<dim, T_expr::dim>::value
+                 >::type*& = enabler>
+    Vector& operator-=(const T_expr& expr)
+    {
+        return *this = (*this - expr);
+    }
 
+    Vector& operator*=(const elem_t& expr)
+    {
+        return *this = (*this * expr);
+    }
 
-        template<class E, 
-                 typename std::enable_if<
-                     is_VectorExpression<typename E::value_trait>::value&&
-                     is_SameSize<size, E::size>::value
-                     >::type*& = enabler>
-        RealVector& operator-=(const E& exp)
-        {
-            *this = VectorSub<RealVector, E>(*this, exp);
-            return *this;
-        } 
+    Vector& operator/=(const elem_t& expr)
+    {
+        return *this = (*this / expr);
+    }
 
-        template<class E, 
-                 typename std::enable_if<is_ScalarType<E>::value>::type*& =
-                     enabler>
-        RealVector& operator*=(const E& exp)
-        {
-            *this = VectorSclMul<RealVector>(exp, *this);
-            return *this;
-        } 
+    const double& operator[](const std::size_t i) const
+    {
+        return values_[i];
+    }
 
-        template<class E, 
-                 typename std::enable_if<is_ScalarType<E>::value>::type*& =
-                     enabler>
-        RealVector& operator/=(const E& exp)
-        {
-            *this = VectorSclDiv<RealVector>(*this, exp);
-            return *this;
-        } 
+    double& operator[](const std::size_t i)
+    {
+        return values_[i];
+    }
 
-        const double& operator[](const std::size_t i) const
-        {
-            return values[i];
-        }
+    const double& at(const std::size_t i) const
+    {
+        return values_.at(i);
+    }
 
-        double& operator[](const std::size_t i)
-        {
-            return values[i];
-        }
+    double& at(const std::size_t i)
+    {
+        return values_.at(i);
+    }
 
-        const double& at(const std::size_t i) const
-        {
-            return values.at(i);
-        }
-
-        double& at(const std::size_t i)
-        {
-            return values.at(i);
-        }
-
-    private:
-        std::array<double, N> values;
+  private:
+    container_t values_;
 };
 
 }
