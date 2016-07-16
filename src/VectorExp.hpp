@@ -14,8 +14,10 @@ template <typename T_lhs, typename T_oper, typename T_rhs>
 class VectorExpression
 {
   public:
+
     static_assert(is_operator_struct<typename T_oper::tag>::value,
                   "invalid Expression Operator");
+
     using tag = vector_expression_tag;
     constexpr static std::size_t dim = T_lhs::dim;
 
@@ -95,18 +97,12 @@ struct Divide_Operator
 
 template<template<typename T_l, typename T_r> class T_oper,
          typename T_lhs, typename T_rhs>
-struct operator_type_generator
-{
-    using type = T_oper<typename T_lhs::elem_t, typename T_rhs::elem_t>;
-};
+using vector_operator_type = T_oper<typename T_lhs::elem_t, typename T_rhs::elem_t>;
 
 template<typename T_lhs,
     template<typename T_l, typename T_r> class T_oper, typename T_rhs>
-struct vector_expr_type_gen
-{
-    using type = VectorExpression<T_lhs,
-        typename operator_type_generator<T_oper, T_lhs, T_rhs>::type, T_rhs>;
-};
+using vector_expr_type =
+    VectorExpression<T_lhs, vector_operator_type<T_oper, T_lhs, T_rhs>, T_rhs>;
 
 template <typename T_lhs, typename T_rhs>
 class Vector3DCrossProduct
@@ -136,7 +132,7 @@ class Vector3DCrossProduct
 
 template <class L, class R,
           typename std::enable_if<is_same_vector<L,R>::value>::type*& = enabler>
-inline typename detail::vector_expr_type_gen<L, detail::Add_Operator, R>::type
+inline typename detail::vector_expr_type<L, detail::Add_Operator, R>
 operator+(const L& lhs, const R& rhs)
 {
     return detail::VectorExpression<L,
@@ -146,7 +142,7 @@ operator+(const L& lhs, const R& rhs)
 
 template <class L, class R,
           typename std::enable_if<is_same_vector<L,R>::value>::type*& = enabler>
-inline typename detail::vector_expr_type_gen<L, detail::Subtract_Operator, R>::type
+inline typename detail::vector_expr_type<L, detail::Subtract_Operator, R>
 operator-(const L& lhs, const R& rhs)
 {
     return detail::VectorExpression<L,
