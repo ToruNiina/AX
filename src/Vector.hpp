@@ -32,7 +32,7 @@ class Vector
     Vector(const self_type& v): values_(v.values_){} 
     Vector(const std::vector<elem_t>& vec)
     {
-        if(vec.size() < dim) vec.resize(dim);
+        if(vec.size() < dim) vec.resize(dim, 0e0);
         for(std::size_t i(0); i<dim; ++i) values_[i] = vec[i];
     }
 
@@ -53,13 +53,39 @@ class Vector
         for(std::size_t i(0); i<dim; ++i) (*this)[i] = expr[i];
     }
 
+    // from dynamic
+    template<class T_expr,
+             typename std::enable_if<
+                 is_vector_expression<typename T_expr::tag>::value&&
+                 is_dynamic_dimention<T_expr::dim>::value>::type*& = enabler>
+    Vector(const T_expr& expr)
+    {
+        if(expr.size() != dim)
+            throw std::invalid_argument("vector size different");
+        for(std::size_t i(0); i<dim; ++i) (*this)[i] = expr[i];
+    }
+
+    // from static
     template<class T_expr,
              typename std::enable_if<
                  is_vector_expression<typename T_expr::tag>::value&&
                  is_same_dimention<dim, T_expr::dim>::value
                  >::type*& = enabler>
-    Vector& operator=(const T_expr& expr)
+    Vector<elem_t, dim>& operator=(const T_expr& expr)
     {
+        for(auto i(0); i<dim; ++i) (*this)[i] = expr[i];
+        return *this;
+    }
+
+    // from dynamic
+    template<class T_expr,
+             typename std::enable_if<
+                 is_vector_expression<typename T_expr::tag>::value&&
+                 is_dynamic_dimention<T_expr::dim>::value>::type*& = enabler>
+    Vector<elem_t, dim>& operator=(const T_expr& expr)
+    {
+        if(expr.size() != dim)
+            throw std::invalid_argument("vector size different");
         for(auto i(0); i<dim; ++i) (*this)[i] = expr[i];
         return *this;
     }
@@ -69,8 +95,19 @@ class Vector
                  is_vector_expression<typename T_expr::tag>::value&&
                  is_same_dimention<dim, T_expr::dim>::value
                  >::type*& = enabler>
-    Vector& operator+=(const T_expr& expr)
+    Vector<elem_t, dim>& operator+=(const T_expr& expr)
     {
+        return *this = (*this + expr);
+    }
+
+    template<class T_expr,
+             typename std::enable_if<
+                 is_vector_expression<typename T_expr::tag>::value&&
+                 is_dynamic_dimention<T_expr::dim>::value>::type*& = enabler>
+    Vector<elem_t, dim>& operator+=(const T_expr& expr)
+    {
+        if(expr.size() != dim)
+            throw std::invalid_argument("vector size different");
         return *this = (*this + expr);
     }
 
@@ -79,40 +116,37 @@ class Vector
                  is_vector_expression<typename T_expr::tag>::value&&
                  is_same_dimention<dim, T_expr::dim>::value
                  >::type*& = enabler>
-    Vector& operator-=(const T_expr& expr)
+    Vector<elem_t, dim>& operator-=(const T_expr& expr)
     {
         return *this = (*this - expr);
     }
 
-    Vector& operator*=(const elem_t& expr)
+    template<class T_expr,
+             typename std::enable_if<
+                 is_vector_expression<typename T_expr::tag>::value&&
+                 is_dynamic_dimention<T_expr::dim>::value>::type*& = enabler>
+    Vector<elem_t, dim>& operator-=(const T_expr& expr)
+    {
+        if(expr.size() != dim)
+            throw std::invalid_argument("vector size different");
+        return *this = (*this - expr);
+    }
+
+    Vector<elem_t, dim>& operator*=(const elem_t& expr)
     {
         return *this = (*this * expr);
     }
 
-    Vector& operator/=(const elem_t& expr)
+    Vector<elem_t, dim>& operator/=(const elem_t& expr)
     {
         return *this = (*this / expr);
     }
 
-    const double& operator[](const std::size_t i) const
-    {
-        return values_[i];
-    }
+    elem_t const& operator[](const std::size_t i) const {return values_[i];}
+    elem_t&       operator[](const std::size_t i)       {return values_[i];}
 
-    double& operator[](const std::size_t i)
-    {
-        return values_[i];
-    }
-
-    const double& at(const std::size_t i) const
-    {
-        return values_.at(i);
-    }
-
-    double& at(const std::size_t i)
-    {
-        return values_.at(i);
-    }
+    elem_t const& at(const std::size_t i) const {return values_.at(i);}
+    elem_t&       at(const std::size_t i)       {return values_.at(i);}
 
   private:
     container_t values_;
