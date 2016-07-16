@@ -8,6 +8,7 @@ namespace ax
     extern void* enabler; //never defined
 
     using dimention_type = int;
+    constexpr static dimention_type DYNAMIC = -1;
 
     struct operator_tag{};
     struct matrix_tag{};
