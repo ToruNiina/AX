@@ -192,9 +192,7 @@ typename detail::vector_expr_type<L, detail::Add_Operator, R,
 operator+(const L& lhs, const R& rhs)
 {
     if(dimension(lhs) != dimension(rhs))
-        throw std::invalid_argument("in operator+, vector dimension different: lhs = "
-                + std::to_string(dimension(lhs)) + ", rhs = "
-                + std::to_string(dimension(rhs)));
+        throw std::invalid_argument("in operator+, vector dimension different");
     return detail::VectorExpression<L,
                detail::Add_Operator<typename L::elem_t, typename R::elem_t>,
                R, vector_expression_dimension<L, R>::value>(lhs, rhs);
@@ -223,9 +221,7 @@ typename detail::vector_expr_type<L, detail::Subtract_Operator, R,
 operator-(const L& lhs, const R& rhs)
 {
     if(dimension(lhs) != dimension(rhs))
-        throw std::invalid_argument("in operator-, vector dimension different: lhs = "
-                + std::to_string(dimension(lhs)) + ", rhs = "
-                + std::to_string(dimension(rhs)));
+        throw std::invalid_argument("in operator-, vector dimension different");
     return detail::VectorExpression<L,
                detail::Subtract_Operator<typename L::elem_t, typename R::elem_t>,
                R, vector_expression_dimension<L, R>::value>(lhs, rhs);
@@ -357,8 +353,9 @@ typename T_lhs::elem_t
 dot_prod(const T_lhs& lhs, const T_rhs& rhs)
 {
     if(T_lhs::dim != dimension(rhs)) 
-        throw std::invalid_argument("in dot_prod, vector size different: lhs = "
-                + std::to_string(dimension(lhs)) + ", rhs = "
+        throw std::invalid_argument(
+                std::string("in dot_prod, vector size different: lhs = ")
+                + std::to_string(dimension(lhs)) + std::string(", rhs = ")
                 + std::to_string(dimension(rhs)));
     return detail::dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, T_lhs::dim - 1, 0.0);
 }
@@ -373,9 +370,7 @@ typename T_lhs::elem_t
 dot_prod(const T_lhs& lhs, const T_rhs& rhs)
 {
     if(dimension(lhs) != T_rhs::dim) 
-        throw std::invalid_argument("in dot_prod, vector size different: lhs = "
-                + std::to_string(dimension(lhs)) + ", rhs = "
-                + std::to_string(dimension(rhs)));
+        throw std::invalid_argument("in dot_prod, vector size different");
     return detail::dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, T_rhs::dim - 1, 0.0);
 }
 
@@ -389,9 +384,7 @@ typename T_lhs::elem_t
 dot_prod(const T_lhs& lhs, const T_rhs& rhs)
 {
     if(dimension(lhs) != dimension(rhs))
-        throw std::invalid_argument("in dot_prod, vector size different : lhs = "
-                + std::to_string(dimension(lhs)) + ", rhs = "
-                + std::to_string(dimension(rhs)));
+        throw std::invalid_argument("in dot_prod, vector size different");
     return detail::dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, dimension(lhs) - 1, 0.0);
 }
 
