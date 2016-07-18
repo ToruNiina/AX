@@ -7,11 +7,12 @@
 #include <boost/test/included/unit_test.hpp>
 #endif
 
-#include "DynamicVector.hpp"
-using VectorDd = ax::RealDynamicVector;
+#include "../src/DynamicVector.hpp"
+using VectorDd = ax::Vector<double, ax::DYNAMIC>;
 
 #include "test_Defs.hpp"
 using ax::test::seed;
+using ax::test::tolerance;
 
 #include <random>
 
@@ -157,7 +158,7 @@ BOOST_AUTO_TEST_CASE(VectorNd_dot_product)
         for(std::size_t i=0; i<10; ++i)
             dot_product += v1.at(i) * v2.at(i);
 
-        BOOST_CHECK_EQUAL(dot_prod(vec1, vec2), dot_product);
+        BOOST_CHECK_CLOSE_FRACTION(dot_prod(vec1, vec2), dot_product, tolerance);
     }
 }
 
@@ -178,9 +179,9 @@ BOOST_AUTO_TEST_CASE(VectorNd_length)
         for(std::size_t i=0; i<10; ++i)
             lensq += v1.at(i) * v1.at(i);
 
-        BOOST_CHECK_EQUAL(len_square(vec1), lensq);
-        BOOST_CHECK_EQUAL(length(vec1), std::sqrt(lensq));
+        BOOST_CHECK_CLOSE_FRACTION(len_square(vec1), lensq, tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(length(vec1), std::sqrt(lensq), tolerance);
 
-        BOOST_CHECK_EQUAL(len_square(vec1), dot_prod(vec1, vec1));
+        BOOST_CHECK_CLOSE_FRACTION(len_square(vec1), dot_prod(vec1, vec1), tolerance);
     }
 }
