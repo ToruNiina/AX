@@ -95,7 +95,7 @@ class VectorScalarExpression
     }
 
     T_vec const& l_;
-    T_scl const& r_;
+    T_scl const  r_;
 };
 
 // operator definitions Some_Operator::apply(lhs, rhs) return lhs (op) rhs {{{
@@ -404,12 +404,17 @@ template <class T_vec,
           typename std::enable_if<
               is_vector_expression<typename T_vec::tag>::value
               >::type*& = enabler>
-inline detail::VectorScalarExpression<T_vec,
+detail::VectorScalarExpression<T_vec,
     detail::Divide_Operator<typename T_vec::elem_t, typename T_vec::elem_t>,
     typename T_vec::elem_t>
 normalize(const T_vec& lhs)
 {
-    return lhs / length(lhs);
+    const typename T_vec::elem_t len = length(lhs);
+    if(len == 0 || len != len)
+        throw std::invalid_argument("length is 0 or nan");
+    return detail::VectorScalarExpression<T_vec,
+        detail::Divide_Operator<typename T_vec::elem_t, typename T_vec::elem_t>,
+        typename T_vec::elem_t>(lhs, len);
 }
 
 
