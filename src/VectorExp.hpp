@@ -1,16 +1,35 @@
 #ifndef AX_VECTOR_EXPRESSION_H
 #define AX_VECTOR_EXPRESSION_H
-#include <cmath>
 #include "Expression.hpp"
 #include "util.hpp"
+#include <stdexcept>
+#include <cmath>
 
 namespace ax
 {
 
+template <class T_vec, typename std::enable_if<
+              is_vector_type<typename T_vec::tag>::value&&
+              is_static_dimension<T_vec::dim>::value>::type*& = enabler>
+std::size_t dimension(const T_vec& v){return T_vec::dim;}
+
+template <class T_vec, typename std::enable_if<
+              is_vector_type<typename T_vec::tag>::value&&
+              is_dynamic_dimension<T_vec::dim>::value>::type*& = enabler>
+std::size_t dimension(const T_vec& v){return v.size();}
+
+template <class T_vexpr, typename std::enable_if<
+              is_exactly_vector_expr<typename T_vexpr::tag>::value
+              >::type*& = enabler>
+std::size_t dimension(const T_vexpr& vexpr)
+{
+    return dimension(vexpr.l_);
+}
+
 namespace detail
 {
 
-template <typename T_lhs, typename T_oper, typename T_rhs>
+template <typename T_lhs, typename T_oper, typename T_rhs, dimension_type I_dim>
 class VectorExpression
 {
   public:
@@ -19,18 +38,18 @@ class VectorExpression
                   "invalid Expression Operator");
 
     using tag = vector_expression_tag;
-    constexpr static std::size_t dim = T_lhs::dim;
+    using elem_t = typename T_lhs::elem_t;
+    constexpr static dimension_type dim = I_dim;
 
     VectorExpression(const T_lhs& lhs, const T_rhs& rhs)
         : l_(lhs), r_(rhs)
     {}
 
-    double operator[](const std::size_t i) const
+    elem_t operator[](const std::size_t i) const
     {
         return T_oper::apply(l_[i], r_[i]);
     }
 
-  private:
     T_lhs const& l_;
     T_rhs const& r_;
 };
@@ -47,18 +66,18 @@ class VectorScalarExpression
     static_assert(is_operator_struct<typename T_oper::tag>::value,
                   "invalid Expression Operator");
     using tag = vector_expression_tag;
-    constexpr static std::size_t dim = T_vec::dim;
+    using elem_t = typename T_vec::elem_t;
+    constexpr static dimension_type dim = T_vec::dim;
 
     VectorScalarExpression(const T_vec& lhs, const T_scl& rhs)
         : l_(lhs), r_(rhs)
     {}
 
-    double operator[](const std::size_t i) const
+    elem_t operator[](const std::size_t i) const
     {
         return T_oper::apply(l_[i], r_);
     }
 
-  private:
     T_vec const& l_;
     T_scl const& r_;
 };
@@ -100,29 +119,29 @@ template<template<typename T_l, typename T_r> class T_oper,
 using vector_operator_type = T_oper<typename T_lhs::elem_t, typename T_rhs::elem_t>;
 
 template<typename T_lhs,
-    template<typename T_l, typename T_r> class T_oper, typename T_rhs>
+    template<typename T_l, typename T_r> class T_oper,
+    typename T_rhs, dimension_type I_dim>
 using vector_expr_type =
-    VectorExpression<T_lhs, vector_operator_type<T_oper, T_lhs, T_rhs>, T_rhs>;
+    VectorExpression<T_lhs, vector_operator_type<T_oper, T_lhs, T_rhs>, T_rhs, I_dim>;
 
 template <typename T_lhs, typename T_rhs>
 class Vector3DCrossProduct
 {
   public:
     using tag = vector_expression_tag;
-    constexpr static std::size_t dim = T_lhs::dim;
+    using elem_t = typename T_lhs::elem_t;
+    constexpr static dimension_type dim = T_lhs::dim;
 
     Vector3DCrossProduct(const T_lhs& lhs, const T_rhs& rhs)
         : l_(lhs), r_(rhs)
     {}
 
-    double operator[](const std::size_t i) const
+    elem_t operator[](const std::size_t i) const
     {
         using circ = circular_iteration<3>;
         return l_[circ::advance(i)] * r_[circ::advance_times(i, 2)] -
                l_[circ::advance_times(i, 2)] * r_[circ::advance(i)];
     }
-
-  private:
 
     T_lhs const& l_;
     T_rhs const& r_;
@@ -130,24 +149,26 @@ class Vector3DCrossProduct
 
 } // detail
 
+// for static + static or dynamic + dynamic
 template <class L, class R,
           typename std::enable_if<is_same_vector<L,R>::value>::type*& = enabler>
-inline typename detail::vector_expr_type<L, detail::Add_Operator, R>
+inline typename detail::vector_expr_type<L, detail::Add_Operator, R, L::dim>
 operator+(const L& lhs, const R& rhs)
 {
     return detail::VectorExpression<L,
                detail::Add_Operator<typename L::elem_t, typename R::elem_t>,
-               R>(lhs, rhs);
+               R, L::dim>(lhs, rhs);
 }
 
+// for static + static or dynamic + dynamic
 template <class L, class R,
           typename std::enable_if<is_same_vector<L,R>::value>::type*& = enabler>
-inline typename detail::vector_expr_type<L, detail::Subtract_Operator, R>
+inline typename detail::vector_expr_type<L, detail::Subtract_Operator, R, L::dim>
 operator-(const L& lhs, const R& rhs)
 {
     return detail::VectorExpression<L,
                detail::Subtract_Operator<typename L::elem_t, typename R::elem_t>,
-               R>(lhs, rhs);
+               R, L::dim>(lhs, rhs);
 }
 
 // vector * scalar
@@ -210,7 +231,8 @@ length_square_impl(const T_vec& val, const std::size_t i_dim, const typename T_v
 
 template <class T_vec,
           typename std::enable_if<
-              is_vector_expression<typename T_vec::tag>::value
+              is_vector_expression<typename T_vec::tag>::value&&
+              is_static_dimension<T_vec::dim>::value
               >::type*& = enabler>
 constexpr inline typename T_vec::elem_t
 len_square(const T_vec& vec)
@@ -220,9 +242,20 @@ len_square(const T_vec& vec)
 
 template <class T_vec,
           typename std::enable_if<
+              is_vector_expression<typename T_vec::tag>::value&&
+              is_dynamic_dimension<T_vec::dim>::value
+              >::type*& = enabler>
+constexpr inline typename T_vec::elem_t
+len_square(const T_vec& vec)
+{
+    return detail::length_square_impl<T_vec>(vec, dimension(vec) - 1, 0.0);
+}
+
+template <class T_vec,
+          typename std::enable_if<
               is_vector_expression<typename T_vec::tag>::value
               >::type*& = enabler>
-inline double length(const T_vec& l)
+inline typename T_vec::elem_t length(const T_vec& l)
 {
     return std::sqrt(len_square(l));
 }
@@ -243,20 +276,66 @@ dot_prod_impl(const T_lhs& lhs, const T_rhs& rhs, const std::size_t i_dim,
 
 }//detail
 
-template <class T_lhs, class T_rhs,
-          typename std::enable_if<
-              is_same_vector<T_lhs, T_rhs>::value>::type*& = enabler>
+// static * static
+template <class T_lhs, class T_rhs, typename std::enable_if<
+              is_same_vector<T_lhs, T_rhs>::value&&
+              is_static_dimension<T_lhs::dim>::value&&
+              is_static_dimension<T_rhs::dim>::value&&
+              is_same_dimension<T_lhs::dim, T_rhs::dim>::value
+              >::type*& = enabler>
 constexpr inline typename T_lhs::elem_t
 dot_prod(const T_lhs& lhs, const T_rhs& rhs)
 {
     return detail::dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, T_lhs::dim - 1, 0.0);
 }
 
+// static * dynamic
+template <class T_lhs, class T_rhs, typename std::enable_if<
+              is_same_vector<T_lhs, T_rhs>::value&&
+              is_static_dimension<T_lhs::dim>::value&&
+              is_dynamic_dimension<T_rhs::dim>::value
+              >::type*& = enabler>
+inline typename T_lhs::elem_t
+dot_prod(const T_lhs& lhs, const T_rhs& rhs)
+{
+    if(T_lhs::dim != dimension(rhs)) 
+        throw std::invalid_argument("dot_prod: vector size different");
+    return detail::dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, T_lhs::dim - 1, 0.0);
+}
+
+// dynamic * static
+template <class T_lhs, class T_rhs, typename std::enable_if<
+              is_same_vector<T_lhs, T_rhs>::value&&
+              is_dynamic_dimension<T_lhs::dim>::value&&
+              is_static_dimension<T_rhs::dim>::value
+              >::type*& = enabler>
+inline typename T_lhs::elem_t
+dot_prod(const T_lhs& lhs, const T_rhs& rhs)
+{
+    if(dimension(lhs) != T_rhs::dim) 
+        throw std::invalid_argument("dot_prod: vector size different");
+    return detail::dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, T_rhs::dim - 1, 0.0);
+}
+
+// dynamic * dynamic
+template <class T_lhs, class T_rhs, typename std::enable_if<
+              is_same_vector<T_lhs, T_rhs>::value&&
+              is_dynamic_dimension<T_lhs::dim>::value&&
+              is_dynamic_dimension<T_rhs::dim>::value
+              >::type*& = enabler>
+inline typename T_lhs::elem_t
+dot_prod(const T_lhs& lhs, const T_rhs& rhs)
+{
+    if(dimension(lhs) != dimension(rhs)) 
+        throw std::invalid_argument("dot_prod: vector size different");
+    return detail::dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, dimension(lhs) - 1, 0.0);
+}
+
 template <class T_lhs, class T_rhs,
           typename std::enable_if<
               is_same_vector<T_lhs, T_rhs>::value&&
-              is_same_dimention<T_lhs::dim, 3>::value&&
-              is_same_dimention<T_rhs::dim, 3>::value
+              is_same_dimension<T_lhs::dim, 3>::value&&
+              is_same_dimension<T_rhs::dim, 3>::value
               >::type*& = enabler>
 inline detail::Vector3DCrossProduct<T_lhs, T_rhs>
 cross_prod(const T_lhs& lhs, const T_rhs& rhs)
@@ -275,6 +354,7 @@ normalize(const T_vec& lhs)
 {
     return lhs / length(lhs);
 }
+
 
 }
 #endif //AX_VECTOR3_EXPRESSION_H
