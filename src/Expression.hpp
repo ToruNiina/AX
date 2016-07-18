@@ -89,12 +89,26 @@ namespace ax
     };
 
     template<typename T_lhs, typename T_rhs>
+    struct is_static_dynamic_pair
+    {
+        constexpr static bool value = 
+            (is_static_dimension<T_lhs::dim>::value &&
+             is_dynamic_dimension<T_rhs::dim>::value) || 
+            (is_dynamic_dimension<T_lhs::dim>::value &&
+             is_static_dimension<T_rhs::dim>::value);
+    };
+
+    template<typename T_lhs, typename T_rhs>
     struct vector_expression_dimension
     {
+        // case static  * static  -> lhs::dim (static  = N)
+        // case static  * dynamic -> lhs::dim (static  = N)
+        // case dynamic * static  -> rhs::dim (static  = N)
+        // case dynamic * dynamic -> lhs::dim (DYNAMIC = -1)
         constexpr static dimension_type value =
             (is_dynamic_dimension<T_lhs::dim>::value &&
-             is_static_dimension<T_rhs::dim>::value) ? 
-            T_rhs::dim : T_lhs::dim;
+             is_static_dimension<T_rhs::dim>::value)
+            ? T_rhs::dim : T_lhs::dim;
     };
 
 }
