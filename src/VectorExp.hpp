@@ -11,17 +11,17 @@ namespace ax
 template <class T_vec, typename std::enable_if<
               is_vector_type<typename T_vec::tag>::value&&
               is_static_dimension<T_vec::dim>::value>::type*& = enabler>
-std::size_t dimension(const T_vec& v){return T_vec::dim;}
+constexpr inline std::size_t dimension(const T_vec& v){return T_vec::dim;}
 
 template <class T_vec, typename std::enable_if<
               is_vector_type<typename T_vec::tag>::value&&
               is_dynamic_dimension<T_vec::dim>::value>::type*& = enabler>
-std::size_t dimension(const T_vec& v){return v.size();}
+constexpr inline std::size_t dimension(const T_vec& v){return v.size();}
 
 template <class T_vexpr, typename std::enable_if<
               is_exactly_vector_expr<typename T_vexpr::tag>::value
               >::type*& = enabler>
-std::size_t dimension(const T_vexpr& vexpr)
+constexpr inline std::size_t dimension(const T_vexpr& vexpr)
 {
     return dimension(vexpr.l_);
 }
