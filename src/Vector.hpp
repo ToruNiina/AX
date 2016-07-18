@@ -8,9 +8,9 @@
 namespace ax
 {
 
-// static dimention case
-template<typename T_elem, int I_dim,
-         typename std::enable_if<is_static_dimention<I_dim>::value
+// static dimension case
+template<typename T_elem, dimension_type I_dim,
+         typename std::enable_if<is_static_dimension<I_dim>::value
              >::type*& = enabler>
 class Vector
 {
@@ -18,7 +18,7 @@ class Vector
     // traits
     using tag    = vector_tag;
     using elem_t = T_elem;
-    constexpr static std::size_t dim = I_dim;
+    constexpr static dimension_type dim = I_dim;
 
     using container_t = std::array<elem_t, dim>;
     using self_type   = Vector<elem_t, dim>;
@@ -46,7 +46,7 @@ class Vector
     template<class T_expr,
              typename std::enable_if<
                  is_vector_expression<typename T_expr::tag>::value&&
-                 is_same_dimention<dim, T_expr::dim>::value
+                 is_same_dimension<dim, T_expr::dim>::value
                  >::type*& = enabler>
     Vector(const T_expr& expr)
     {
@@ -57,7 +57,7 @@ class Vector
     template<class T_expr,
              typename std::enable_if<
                  is_vector_expression<typename T_expr::tag>::value&&
-                 is_dynamic_dimention<T_expr::dim>::value>::type*& = enabler>
+                 is_dynamic_dimension<T_expr::dim>::value>::type*& = enabler>
     Vector(const T_expr& expr)
     {
         if(expr.size() != dim)
@@ -69,7 +69,7 @@ class Vector
     template<class T_expr,
              typename std::enable_if<
                  is_vector_expression<typename T_expr::tag>::value&&
-                 is_same_dimention<dim, T_expr::dim>::value
+                 is_same_dimension<dim, T_expr::dim>::value
                  >::type*& = enabler>
     Vector<elem_t, dim>& operator=(const T_expr& expr)
     {
@@ -81,7 +81,7 @@ class Vector
     template<class T_expr,
              typename std::enable_if<
                  is_vector_expression<typename T_expr::tag>::value&&
-                 is_dynamic_dimention<T_expr::dim>::value>::type*& = enabler>
+                 is_dynamic_dimension<T_expr::dim>::value>::type*& = enabler>
     Vector<elem_t, dim>& operator=(const T_expr& expr)
     {
         if(expr.size() != dim)
@@ -93,7 +93,7 @@ class Vector
     template<class T_expr,
              typename std::enable_if<
                  is_vector_expression<typename T_expr::tag>::value&&
-                 is_same_dimention<dim, T_expr::dim>::value
+                 is_same_dimension<dim, T_expr::dim>::value
                  >::type*& = enabler>
     Vector<elem_t, dim>& operator+=(const T_expr& expr)
     {
@@ -103,7 +103,7 @@ class Vector
     template<class T_expr,
              typename std::enable_if<
                  is_vector_expression<typename T_expr::tag>::value&&
-                 is_dynamic_dimention<T_expr::dim>::value>::type*& = enabler>
+                 is_dynamic_dimension<T_expr::dim>::value>::type*& = enabler>
     Vector<elem_t, dim>& operator+=(const T_expr& expr)
     {
         if(expr.size() != dim)
@@ -114,7 +114,7 @@ class Vector
     template<class T_expr,
              typename std::enable_if<
                  is_vector_expression<typename T_expr::tag>::value&&
-                 is_same_dimention<dim, T_expr::dim>::value
+                 is_same_dimension<dim, T_expr::dim>::value
                  >::type*& = enabler>
     Vector<elem_t, dim>& operator-=(const T_expr& expr)
     {
@@ -124,7 +124,7 @@ class Vector
     template<class T_expr,
              typename std::enable_if<
                  is_vector_expression<typename T_expr::tag>::value&&
-                 is_dynamic_dimention<T_expr::dim>::value>::type*& = enabler>
+                 is_dynamic_dimension<T_expr::dim>::value>::type*& = enabler>
     Vector<elem_t, dim>& operator-=(const T_expr& expr)
     {
         if(expr.size() != dim)
