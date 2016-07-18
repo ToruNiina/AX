@@ -1,6 +1,6 @@
 #ifndef AX_DYNAMIC_VECTOR_H
 #define AX_DYNAMIC_VECTOR_H
-#include "DynamicVectorExp.hpp"
+#include "VectorExp.hpp"
 #include <iostream>
 #include <vector>
 #include <array>
@@ -8,8 +8,8 @@
 namespace ax
 {
 
-template<typename T_elem, int I_dim,
-         typename std::enable_if<is_dynamic_dimention<I_dim>::value
+template<typename T_elem, dimension_type I_dim,
+         typename std::enable_if<is_dynamic_dimension<I_dim>::value
              >::type*& = enabler>
 class Vector
 {
@@ -17,7 +17,7 @@ class Vector
 
     using tag = vector_tag;
     using elem_t = T_elem;
-    constexpr static std::size_t dim = I_dim;
+    constexpr static dimension_type dim = I_dim;
 
   public:
     Vector(){}
@@ -39,8 +39,8 @@ class Vector
     Vector(Vector<elem_t, dim>&& vec) : values_(std::move(vec.values_)){}
 
     // from static Vector
-    template<int D, typename std::enable_if<
-        is_static_dimention<D>::value>::type*& = enabler>
+    template<dimension_type D, typename std::enable_if<
+        is_static_dimension<D>::value>::type*& = enabler>
     Vector(const Vector<elem_t, D>& vec) : values_(D)
     {
         for(std::size_t i=0; i<D; ++i) this->values_[i] = vec[i];
@@ -49,16 +49,16 @@ class Vector
     // from dynamic Vector expression
     template<class T_expr, typename std::enable_if<
                 is_vector_expression<typename T_expr::tag>::value&&
-                is_dynamic_dimention<T_expr::dim>::value>::type*& = enabler>
-    Vector(const T_expr& expr) : values_(expr.size())
+                is_dynamic_dimension<T_expr::dim>::value>::type*& = enabler>
+    Vector(const T_expr& expr) : values_(dimension(expr))
     {
-        for(std::size_t i=0; i<expr.size(); ++i) this->values_[i] = expr[i];
+        for(std::size_t i=0; i<dimension(expr); ++i) this->values_[i] = expr[i];
     }
 
     // from static Vector
     template<class T_expr, typename std::enable_if<
                 is_vector_expression<typename T_expr::tag>::value&&
-                is_static_dimention<T_expr::dim>::value>::type*& = enabler>
+                is_static_dimension<T_expr::dim>::value>::type*& = enabler>
     Vector(const T_expr& expr) : values_(T_expr::dim)
     {
         for(std::size_t i=0; i<T_expr::dim; ++i) this->values_[i] = expr[i];
@@ -88,18 +88,18 @@ class Vector
     template<class T_expr,
             typename std::enable_if<
                 is_vector_expression<typename T_expr::tag>::value&&
-                is_dynamic_dimention<T_expr::dim>::value>::type*& = enabler>
+                is_dynamic_dimension<T_expr::dim>::value>::type*& = enabler>
     Vector<elem_t, dim>& operator=(const T_expr& expr)
     {
-        this->values_.resize(expr.size(), 0e0);
-        for(std::size_t i=0; i<expr.size(); ++i) this->values_[i] = expr[i];
+        this->values_.resize(dimension(expr), 0e0);
+        for(std::size_t i=0; i<dimension(expr); ++i) this->values_[i] = expr[i];
         return *this;
     }
 
     template<class T_expr,
             typename std::enable_if<
                 is_vector_expression<typename T_expr::tag>::value&&
-                is_static_dimention<T_expr::dim>::value>::type*& = enabler>
+                is_static_dimension<T_expr::dim>::value>::type*& = enabler>
     Vector<elem_t, dim>& operator=(const T_expr& expr)
     {
         this->values_.resize(T_expr::dim, 0e0);
@@ -112,10 +112,10 @@ class Vector
     template<class T_expr,
             typename std::enable_if<
                 is_vector_expression<typename T_expr::tag>::value&&
-                is_dynamic_dimention<T_expr::dim>::value>::type*& = enabler>
+                is_dynamic_dimension<T_expr::dim>::value>::type*& = enabler>
     Vector<elem_t, dim>& operator+=(const T_expr& expr)
     {
-        if(this->size() != expr.size())
+        if(this->size() != dimension(expr))
             throw std::invalid_argument("add different size vector");
         return *this = (*this + expr);
     } 
@@ -124,7 +124,7 @@ class Vector
     template<class T_expr,
             typename std::enable_if<
                 is_vector_expression<typename T_expr::tag>::value&&
-                is_static_dimention<T_expr::dim>::value>::type*& = enabler>
+                is_static_dimension<T_expr::dim>::value>::type*& = enabler>
     Vector<elem_t, dim>& operator+=(const T_expr& expr)
     {
         if(this->size() != T_expr::dim)
@@ -137,10 +137,10 @@ class Vector
     template<class T_expr,
             typename std::enable_if<
                 is_vector_expression<typename T_expr::tag>::value&&
-                is_dynamic_dimention<T_expr::dim>::value>::type*& = enabler>
+                is_dynamic_dimension<T_expr::dim>::value>::type*& = enabler>
     Vector<elem_t, dim>& operator-=(const T_expr& expr)
     {
-        if(this->size() != expr.size())
+        if(this->size() != dimension(expr))
             throw std::invalid_argument("add different size vector");
         return *this = (*this - expr);
     }
@@ -149,7 +149,7 @@ class Vector
     template<class T_expr,
             typename std::enable_if<
                 is_vector_expression<typename T_expr::tag>::value&&
-                is_static_dimention<T_expr::dim>::value>::type*& = enabler>
+                is_static_dimension<T_expr::dim>::value>::type*& = enabler>
     Vector<elem_t, dim>& operator-=(const T_expr& expr)
     {
         if(this->size() != T_expr::dim)
@@ -160,7 +160,7 @@ class Vector
     Vector<elem_t, dim>& operator*=(const elem_t& scl)
     {
         return *this = (*this * scl);
-    } 
+    }
     Vector<elem_t, dim>& operator/=(const elem_t& scl)
     {
         return *this = (*this / scl);
