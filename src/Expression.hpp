@@ -7,8 +7,8 @@ namespace ax
 {
     extern void* enabler; //never defined
 
-    using dimention_type = int;
-    constexpr static dimention_type DYNAMIC = -1;
+    using dimension_type = int;
+    constexpr static dimension_type DYNAMIC = -1;
 
     struct operator_tag{};
     struct matrix_tag{};
@@ -17,15 +17,27 @@ namespace ax
     struct vector_expression_tag{};
     struct avx_operation_tag{};
 
-    template <dimention_type I_dim>
-    struct is_static_dimention{constexpr static bool value = I_dim >= 0;};
-    template <dimention_type I_dim>
-    struct is_dynamic_dimention{constexpr static bool value = I_dim < 0;};
+    template <dimension_type I_dim>
+    struct is_static_dimension{constexpr static bool value = I_dim > 0;};
+    template <dimension_type I_dim>
+    struct is_dynamic_dimension{constexpr static bool value = I_dim < 0;};
+    template <dimension_type I_dim>
+    struct is_void_dimension{constexpr static bool value = I_dim == 0;};
 
     template <typename T>
     struct is_operator_struct : public std::false_type{};
     template <>
     struct is_operator_struct<operator_tag> : public std::true_type{};
+
+    template<typename T>
+    struct is_matrix_type : public std::false_type {};
+    template<>
+    struct is_matrix_type<matrix_tag> : public std::true_type {};
+
+    template<typename T>
+    struct is_exactly_matrix_expr : public std::false_type {};
+    template<>
+    struct is_exactly_matrix_expr<matrix_expression_tag>: public std::true_type{};
 
     template <typename T>
     struct is_matrix_expression: public std::false_type{};
@@ -34,6 +46,16 @@ namespace ax
     template <>
     struct is_matrix_expression<matrix_expression_tag>: public std::true_type{};
 
+    template<typename T>
+    struct is_vector_type : public std::false_type {};
+    template<>
+    struct is_vector_type<vector_tag> : public std::true_type {};
+
+    template<typename T>
+    struct is_exactly_vector_expr : public std::false_type {};
+    template<>
+    struct is_exactly_vector_expr<vector_expression_tag> : public std::true_type {};
+
     template <typename T>
     struct is_vector_expression: public std::false_type{};
     template <>
@@ -41,12 +63,12 @@ namespace ax
     template <>
     struct is_vector_expression<vector_expression_tag>: public std::true_type{};
 
-    template <dimention_type I_ldim, dimention_type I_rdim>
-    struct is_same_dimention: public std::false_type{};
-    template <dimention_type I_dim>
-    struct is_same_dimention<I_dim, I_dim>: public std::true_type{};
+    template <dimension_type I_ldim, dimension_type I_rdim>
+    struct is_same_dimension: public std::false_type{};
+    template <dimension_type I_dim>
+    struct is_same_dimension<I_dim, I_dim>: public std::true_type{};
 
-    template <dimention_type I_dim>
+    template <dimension_type I_dim>
     struct is_scalar{constexpr static bool value = (I_dim == 0);};
 
     template <typename T, typename T_vec>
@@ -62,8 +84,17 @@ namespace ax
         constexpr static bool value =
             is_vector_expression<typename T_lhs::tag>::value&&
             is_vector_expression<typename T_rhs::tag>::value&&
-            is_same_dimention<T_lhs::dim, T_rhs::dim>::value&&
+            is_same_dimension<T_lhs::dim, T_rhs::dim>::value&&
             std::is_same<typename T_lhs::elem_t, typename T_rhs::elem_t>::value;
+    };
+
+    template<typename T_lhs, typename T_rhs>
+    struct vector_expression_dimension
+    {
+        constexpr static dimension_type value =
+            (is_dynamic_dimension<T_lhs::dim>::value &&
+             is_static_dimension<T_rhs::dim>::value) ? 
+            T_rhs::dim : T_lhs::dim;
     };
 
 }
