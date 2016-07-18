@@ -16,6 +16,7 @@ Vector<typename T_lhs::elem_t, 3>
 rotation(const double angle, const T_lhs& axis, const T_rhs& target)
 {
     using Quat = boost::math::quaternion<double>;
+    using namespace boost::math;
 
     const double sin_normalize(sin(angle * 0.5) / length(axis));
 
