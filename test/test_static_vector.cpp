@@ -38,6 +38,10 @@ BOOST_AUTO_TEST_CASE(VectorNd_Constructable)
 
     for(std::size_t i=0; i<10; ++i)
         BOOST_CHECK_EQUAL(vec_cp_1[i], 1e0);
+
+    const VectorNd<10> vec_2(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
+    for(std::size_t i=0; i<10; ++i)
+        BOOST_CHECK_EQUAL(vec_2[i], static_cast<double>(i));
 }
 
 BOOST_AUTO_TEST_CASE(VectorNd_Add)
