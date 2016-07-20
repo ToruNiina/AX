@@ -106,12 +106,10 @@ class Matrix
 
     // ~~~~~~~~~~~~~~~~~~~~~ operator ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    template<class T_expr,
-             typename std::enable_if<
-                 is_matrix_expression<typename T_expr::tag>::value&&
-                 is_same_dimension<T_expr::dim_col, dim_col>::value&&
-                 is_same_dimension<T_expr::dim_row, dim_row>::value
-                 >::type*& = enabler>
+    template<class T_expr, typename std::enable_if<
+        is_matrix_expression<typename T_expr::tag>::value&&
+        is_same_dimension<T_expr::dim_col, dim_col>::value&&
+        is_same_dimension<T_expr::dim_row, dim_row>::value>::type*& = enabler>
     self_type& operator=(const T_expr& expr)
     {
         for(std::size_t i(0); i<dim_row; ++i)
@@ -120,66 +118,43 @@ class Matrix
         return *this;
     }
 
-//     template<class E,
-//              typename std::enable_if<
-//                  is_DynamicMatrixExpression<typename E::value_trait>::value
-//                  >::type*& = enabler>
-//     RealMatrix& operator=(const E& mat)
-//     {
-//         if(mat.size_col() != col || mat.size_row() != row)
-//             throw std::invalid_argument("different size dynamic matrix");
-//
-//         for(std::size_t i(0); i<row; ++i)
-//             for(std::size_t j(0); j<col; ++j)
-//                 values_[i][j] = mat(i, j);
-//         return *this;
-//     }
-
     template<class T_expr, typename std::enable_if<
-                 is_matrix_expression<typename T_expr::tag>::value&&
-                 is_same_dimension<T_expr::dim_col, dim_col>::value&&
-                 is_same_dimension<T_expr::dim_row, dim_row>::value
-                 >::type*& = enabler>
+        is_matrix_expression<typename T_expr::tag>::value&&
+        is_same_dimension<T_expr::dim_col, dim_col>::value&&
+        is_same_dimension<T_expr::dim_row, dim_row>::value>::type*& = enabler>
     self_type& operator+=(const T_expr& mat)
     {
-        *this = (*this + mat);
-        return *this;
+        return *this = (*this + mat);
     }
 
 
     template<class T_expr, typename std::enable_if<
-                 is_matrix_expression<typename T_expr::tag>::value&&
-                 is_same_dimension<T_expr::dim_col, dim_col>::value&&
-                 is_same_dimension<T_expr::dim_row, dim_row>::value
-                 >::type*& = enabler>
+        is_matrix_expression<typename T_expr::tag>::value&&
+        is_same_dimension<T_expr::dim_col, dim_col>::value&&
+        is_same_dimension<T_expr::dim_row, dim_row>::value>::type*& = enabler>
     self_type& operator-=(const T_expr& mat)
     {
-        *this = (*this - mat);
-        return *this;
+        return *this = (*this - mat);
     }
 
     //operator*= can be used in the case of same size matrix
     template<class T_expr, typename std::enable_if<
-                 is_matrix_expression<typename T_expr::tag>::value&&
-                 is_same_dimension<T_expr::dim_col, dim_col>::value&&
-                 is_same_dimension<T_expr::dim_row, dim_row>::value
-                 >::type*& = enabler>
+        is_matrix_expression<typename T_expr::tag>::value&&
+        is_same_dimension<T_expr::dim_col, dim_col>::value&&
+        is_same_dimension<T_expr::dim_row, dim_row>::value>::type*& = enabler>
     self_type& operator*=(const T_expr& mat)
     {
-        *this = (*this * mat);
-        return *this;
+        return *this = (*this * mat);
     }
 
     self_type& operator*=(const elem_t rhs)
     {
-        *this = (*this * rhs);
-        return *this;
+        return *this = (*this * rhs);
     }
 
     self_type& operator/=(const elem_t rhs)
     {
-        *this = (*this / rhs);
-        return *this;
+        return *this = (*this / rhs);
     }
 
     elem_t const& operator()(const std::size_t i, const std::size_t j) const
