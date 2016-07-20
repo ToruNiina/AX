@@ -5,7 +5,7 @@ set(TEST_NAMES
     test_static_vector
     test_dynamic_vector
     test_static_matrix
-#     test_dynamic_matrix
+    test_dynamic_matrix
 #     test_vector_matrix
 #     test_LUDecomposition
 #     test_2or3_inverse_matrix
@@ -15,7 +15,7 @@ set(TEST_NAMES
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/)
 include_directories("${CMAKE_SOURCE_DIR}/src")
 
-add_definitions("-mavx")
+add_definitions("-mavx -DAX_PARANOIAC")
 
 set(test_library_dependencies)
 find_library(BOOST_UNITTEST_FRAMEWORK_LIBRARY boost_unit_test_framework)

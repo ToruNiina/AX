@@ -8,7 +8,7 @@
 #endif
 
 #include "../src/DynamicMatrix.hpp"
-using MatrixNMd = ax::RealDynamicMatrix;
+using MatrixNMd = ax::Matrix<double, ax::DYNAMIC, ax::DYNAMIC>;
 
 #include "test_Defs.hpp"
 using ax::test::tolerance;
@@ -216,8 +216,8 @@ BOOST_AUTO_TEST_CASE(MatrixNd_Multiple)
 
     const MatrixNMd mat1(rand1);
     const MatrixNMd mat2(rand2);
-
     const MatrixNMd mat3 = mat1 * mat2;
+
     for(std::size_t i=0; i<Dim_N; ++i)
         for(std::size_t j=0; j<Dim_N; ++j)
         {
