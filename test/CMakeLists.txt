@@ -3,7 +3,7 @@ set(TEST_NAMES
 #     test_3DAVXvector
     test_static_vector
     test_dynamic_vector
-#     test_static_matrix
+    test_static_matrix
 #     test_dynamic_matrix
 #     test_vector_matrix
 #     test_LUDecomposition
