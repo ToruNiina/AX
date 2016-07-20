@@ -32,11 +32,7 @@ class VectorExpression
 
     elem_t operator[](const std::size_t i) const
     {
-#ifdef AX_PARANOIAC
-        return T_oper::apply(l_.at(i), r_.at(i));
-#else
         return T_oper::apply(l_[i], r_[i]);
-#endif
     }
 
     T_lhs const& l_;
@@ -65,12 +61,7 @@ class VectorScalarExpression
 
     elem_t operator[](const std::size_t i) const
     {
-#ifdef AX_PARANOIAC
-        return T_oper::apply(l_.at(i), r_);
-#else
         return T_oper::apply(l_[i], r_);
-#endif
-
     }
 
     T_vec const& l_;
@@ -227,13 +218,8 @@ template <class T_vec,
 constexpr inline typename T_vec::elem_t
 length_square_impl(const T_vec& val, const std::size_t i_dim, const typename T_vec::elem_t sum)
 {
-#ifdef AX_PARANOIAC
-    return (i_dim == 0) ? sum + val.at(i_dim) * val.at(i_dim) :
-        length_square_impl<T_vec>(val, i_dim - 1, sum + val.at(i_dim) * val.at(i_dim));
-#else
     return (i_dim == 0) ? sum + val[i_dim] * val[i_dim] :
         length_square_impl<T_vec>(val, i_dim - 1, sum + val[i_dim] * val[i_dim]);
-#endif
 }
 
 }//detail
@@ -277,15 +263,9 @@ constexpr inline typename T_lhs::elem_t
 dot_prod_impl(const T_lhs& lhs, const T_rhs& rhs, const std::size_t i_dim,
               const typename T_lhs::elem_t sum)
 {
-#ifdef AX_PARANOIAC
-    return (i_dim == 0) ? sum + lhs.at(i_dim) * rhs.at(i_dim) :
-        dot_prod_impl<T_lhs, T_rhs>(
-                lhs, rhs, i_dim - 1, sum + lhs.at(i_dim) * rhs.at(i_dim));
-#else
     return (i_dim == 0) ? sum + lhs[i_dim] * rhs[i_dim] :
         dot_prod_impl<T_lhs, T_rhs>(
                 lhs, rhs, i_dim - 1, sum + lhs[i_dim] * rhs[i_dim]);
-#endif
 }
 
 }//detail

@@ -127,8 +127,22 @@ class Vector
         return *this = (*this / expr);
     }
 
-    elem_t const& operator[](const std::size_t i) const {return values_[i];}
-    elem_t&       operator[](const std::size_t i)       {return values_[i];}
+    elem_t const& operator[](const std::size_t i) const
+    {
+#ifdef AX_PARANOIAC
+        return values_.at(i);
+#else
+        return values_[i];
+#endif
+    }
+    elem_t&       operator[](const std::size_t i)
+    {
+#ifdef AX_PARANOIAC
+        return values_.at(i);
+#else
+        return values_[i];
+#endif
+    }
 
     elem_t const& at(const std::size_t i) const {return values_.at(i);}
     elem_t&       at(const std::size_t i)       {return values_.at(i);}
