@@ -1,6 +1,7 @@
 #ifndef AX_VECTOR_EXPRESSION_H
 #define AX_VECTOR_EXPRESSION_H
-#include "Expression.hpp"
+#include "TypeTraits.hpp"
+#include "OperatorStructs.hpp"
 #include "util.hpp"
 #include <stdexcept>
 #include <cmath>
@@ -8,38 +9,6 @@
 namespace ax
 {
 
-// constexpr std::size_t dimension(T_vex vex){return dimension of vex} {{{
-
-// for static vector
-template <class T_vec, typename std::enable_if<
-              is_vector_type<typename T_vec::tag>::value&&
-              is_static_dimension<T_vec::dim>::value>::type*& = enabler>
-constexpr inline std::size_t dimension(const T_vec& v){return T_vec::dim;}
-
-// for dynamic vector
-template <class T_vec, typename std::enable_if<
-              is_vector_type<typename T_vec::tag>::value&&
-              is_dynamic_dimension<T_vec::dim>::value>::type*& = enabler>
-constexpr inline std::size_t dimension(const T_vec& v){return v.size();}
-
-// for static vector expression
-template <class T_vexpr, typename std::enable_if<
-              is_exactly_vector_expr<typename T_vexpr::tag>::value&&
-              is_static_dimension<T_vexpr::dim>::value>::type*& = enabler>
-constexpr inline std::size_t dimension(const T_vexpr& vexpr)
-{
-    return T_vexpr::dim;
-}
-
-// for dynamic vector expression
-template <class T_vexpr, typename std::enable_if<
-              is_exactly_vector_expr<typename T_vexpr::tag>::value&&
-              is_dynamic_dimension<T_vexpr::dim>::value>::type*& = enabler>
-constexpr inline std::size_t dimension(const T_vexpr& vexpr)
-{
-    return dimension(vexpr.l_); //XXX: in vector_scalar_operation, l is vector
-}
-// }}}
 
 namespace detail
 {
@@ -121,41 +90,6 @@ class Vector3DCrossProduct
     T_rhs const& r_;
 };
 
-// operator definitions Some_Operator::apply(lhs, rhs) return lhs (op) rhs {{{
-template<typename T_lhs, typename T_rhs>
-struct Add_Operator
-{
-    using tag = operator_tag;
-    static auto apply(const T_lhs lhs, const T_rhs rhs) -> decltype(lhs + rhs)
-    {return lhs + rhs;}
-};
-
-template<typename T_lhs, typename T_rhs>
-struct Subtract_Operator
-{
-    using tag = operator_tag;
-    static auto apply(const T_lhs lhs, const T_rhs rhs) -> decltype(lhs - rhs)
-    {return lhs - rhs;}
-};
-
-template<typename T_lhs, typename T_rhs>
-struct Multiply_Operator
-{
-    using tag = operator_tag;
-    static auto apply(const T_lhs lhs, const T_rhs rhs) -> decltype(lhs * rhs)
-    {return lhs * rhs;}
-};
-
-template<typename T_lhs, typename T_rhs>
-struct Divide_Operator
-{
-    using tag = operator_tag;
-    static auto apply(const T_lhs lhs, const T_rhs rhs) -> decltype(lhs / rhs)
-    {return lhs / rhs;}
-};
-// }}}
-
-// alias to use VectorExpression more easily {{{
 template<template<typename T_l, typename T_r> class T_oper,
          typename T_lhs, typename T_rhs>
 using vector_operator_type = T_oper<typename T_lhs::elem_t, typename T_rhs::elem_t>;
@@ -165,7 +99,6 @@ template<typename T_lhs,
     typename T_rhs, dimension_type I_dim>
 using vector_expr_type =
     VectorExpression<T_lhs, vector_operator_type<T_oper, T_lhs, T_rhs>, T_rhs, I_dim>;
-// }}}
 
 } // detail
 
