@@ -2,8 +2,7 @@
 #define AX_INPUT_OUTPUT_H
 #include <iostream>
 #include <array>
-#include "Expression.hpp"
-#include "VectorExp.hpp"
+#include "TypeTraits.hpp"
 
 namespace ax
 {

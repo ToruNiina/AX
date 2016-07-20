@@ -3,7 +3,7 @@
 #include <array>
 #include <vector>
 #include <iostream>
-#include "VectorExp.hpp"
+#include "VectorExpression.hpp"
 
 namespace ax
 {

@@ -1,6 +1,6 @@
 #ifndef AX_DYNAMIC_VECTOR_H
 #define AX_DYNAMIC_VECTOR_H
-#include "VectorExp.hpp"
+#include "VectorExpression.hpp"
 #include <iostream>
 #include <vector>
 #include <array>
