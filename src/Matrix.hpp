@@ -7,182 +7,204 @@
 namespace ax
 {
 
-    template<std::size_t R, std::size_t C>
-    class RealMatrix
+/* static C x R matrix M
+     C O L U M N s
+  R ( M_00 M_01 ... M_0C )
+  O ( M_10  .        .   )
+  W (  ...       .   .   )
+  s ( M_R0 ...      M_RC ) */
+template<typename T_elem, dimension_type I_row, dimension_type I_col,
+         typename std::enable_if<is_static_dimension<I_row>::value&&
+             is_static_dimension<I_col>::value>::type*& = enabler>
+class Matrix
+{
+  public:
+
+    using tag = matrix_tag;
+    using elem_t = T_elem;
+    constexpr static dimension_type dim_row = I_row;//number of row
+    constexpr static dimension_type dim_col = I_col;//number of column
+
+    using container_type = std::array<std::array<elem_t, dim_col>, dim_row>;
+    using self_type = Matrix<elem_t, dim_row, dim_col>;
+    // {{col_vec}, {col_vec}, ... }
+
+  public:
+
+    Matrix() : values_{{{}}}{}
+    ~Matrix() = default;
+
+    Matrix(const self_type& mat) : values_(mat.values_){};
+    Matrix(self_type&& mat): values_(std::move(mat.values_)){}
+    Matrix(const container_type& val) : values_(val){}
+
+    // to make Identity matrix
+    Matrix(const elem_t d) : values_{{{}}}
     {
-        public:
+        for(std::size_t i(0); i<dim_row; ++i)
+            for(std::size_t j(0); j<dim_col; ++j)
+                if(i == j)
+                    values_[i][i] = d;
+    }
 
-            using value_trait = Matrix;
-            constexpr static std::size_t row = R;//number of row
-            constexpr static std::size_t col = C;//number of column
-            /*   C x R matrix
-             C O L U M N s
-          R ( M_00 M_01 ... M_0C )
-          O ( M_10  .        .   )
-          W (  ...       .   .   )
-          s ( M_R0 ...      M_RC )
-            */
+    template<class T_expr, typename std::enable_if<
+                 is_matrix_expression<typename T_expr::tag>::value&&
+                 is_same_dimension<T_expr::dim_col, dim_col>::value&&
+                 is_same_dimension<T_expr::dim_row, dim_row>::value
+                 >::type*& = enabler>
+    Matrix(const T_expr& mat)
+    {
+         for(std::size_t i(0); i<dim_row; ++i)
+            for(std::size_t j(0); j<dim_col; ++j)
+                values_[i][j] = mat(i, j);
+    }
 
-        public:
-            // ~~~~~~~~~~ ctor~~~~~~~~~~~~~~~~~~~~~
+    template<class T_expr, typename std::enable_if<
+                 is_matrix_expression<typename T_expr::tag>::value&&
+                 is_dynamic_dimension<T_expr::dim_col>::value&&
+                 is_same_dimension<T_expr::dim_row, dim_row>::value
+                 >::type*& = enabler>
+    Matrix(const T_expr& mat)
+    {
+        if(dimension_col(mat) != dim_col)
+            throw std::invalid_argument("matrix size different");
 
-            RealMatrix()
-            {
-                for(std::size_t i(0); i<R; ++i)
-                    values_[i].fill(0e0);
-            }
+        for(std::size_t i(0); i<dim_row; ++i)
+            for(std::size_t j(0); j<dim_col; ++j)
+                values_[i][j] = mat(i, j);
+    }
 
-            // to make Identity matrix or something
-            RealMatrix(const double d)
-            {
-                for(std::size_t i(0); i<R; ++i)
-                    for(std::size_t j(0); j<C; ++j)
-                        if(i == j)
-                            values_[i][i] = d;
-                        else
-                            values_[i][j] = 0e0;
-            }
+    template<class T_expr, typename std::enable_if<
+                 is_matrix_expression<typename T_expr::tag>::value&&
+                 is_same_dimension<T_expr::dim_col, dim_col>::value&&
+                 is_dynamic_dimension<T_expr::dim_row>::value
+                 >::type*& = enabler>
+    Matrix(const T_expr& mat)
+    {
+        if(dimension_row(mat) != dim_row)
+            throw std::invalid_argument("matrix size different");
 
-            RealMatrix(const RealMatrix<R, C>& mat)
-                : values_(mat.values_)
-            {}
+        for(std::size_t i(0); i<dim_row; ++i)
+            for(std::size_t j(0); j<dim_col; ++j)
+                values_[i][j] = mat(i, j);
+    }
 
-            RealMatrix(const std::array<std::array<double, C>, R>& val)
-                : values_(val)
-            {}
+    template<class T_expr, typename std::enable_if<
+                 is_matrix_expression<typename T_expr::tag>::value&&
+                 is_dynamic_dimension<T_expr::dim_col>::value&&
+                 is_dynamic_dimension<T_expr::dim_row>::value
+                 >::type*& = enabler>
+    Matrix(const T_expr& mat)
+    {
+        if(dimension_row(mat) != dim_row || dimension_col(mat) != dim_col)
+            throw std::invalid_argument("matrix size different");
 
-            template<class E,
-                     typename std::enable_if<
-                         is_MatrixExpression<typename E::value_trait>::value&&
-                         is_SameSize<E::col, col>::value&&
-                         is_SameSize<E::row, row>::value
-                         >::type*& = enabler>
-            RealMatrix(const E& mat)
-            {
-                 for(std::size_t i(0); i<row; ++i)
-                    for(std::size_t j(0); j<col; ++j)
-                        values_[i][j] = mat(i, j);
-            }
+        for(std::size_t i(0); i<dim_row; ++i)
+            for(std::size_t j(0); j<dim_col; ++j)
+                values_[i][j] = mat(i, j);
+    }
 
-            template<class E,
-                     typename std::enable_if<
-                         is_DynamicMatrixExpression<typename E::value_trait>::value
-                         >::type*& = enabler>
-            RealMatrix(const E& mat)
-            {
-                if(mat.size_col() != col || mat.size_row() != row)
-                    throw std::invalid_argument("different size dynamic matrix");
+    // ~~~~~~~~~~~~~~~~~~~~~ operator ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-                for(std::size_t i(0); i<row; ++i)
-                    for(std::size_t j(0); j<col; ++j)
-                        values_[i][j] = mat(i, j);
-            }
+    template<class T_expr,
+             typename std::enable_if<
+                 is_matrix_expression<typename T_expr::tag>::value&&
+                 is_same_dimension<T_expr::dim_col, dim_col>::value&&
+                 is_same_dimension<T_expr::dim_row, dim_row>::value
+                 >::type*& = enabler>
+    self_type& operator=(const T_expr& expr)
+    {
+        for(std::size_t i(0); i<dim_row; ++i)
+            for(std::size_t j(0); j<dim_col; ++j)
+               (*this)(i,j) = expr(i,j);
+        return *this;
+    }
 
-            // ~~~~~~~~~~~~~~~~~~~~~ operator ~~~~~~~~~~~~~~~~~~~~~~~~~
+//     template<class E,
+//              typename std::enable_if<
+//                  is_DynamicMatrixExpression<typename E::value_trait>::value
+//                  >::type*& = enabler>
+//     RealMatrix& operator=(const E& mat)
+//     {
+//         if(mat.size_col() != col || mat.size_row() != row)
+//             throw std::invalid_argument("different size dynamic matrix");
+//
+//         for(std::size_t i(0); i<row; ++i)
+//             for(std::size_t j(0); j<col; ++j)
+//                 values_[i][j] = mat(i, j);
+//         return *this;
+//     }
 
-            template<class E,
-                     typename std::enable_if<
-                         is_MatrixExpression<typename E::value_trait>::value&&
-                         is_SameSize<E::col, col>::value&&
-                         is_SameSize<E::row, row>::value
-                         >::type*& = enabler>
-            RealMatrix& operator=(const E& mat)
-            {
-                for(std::size_t i(0); i<R; ++i)
-                    for(std::size_t j(0); j<C; ++j)
-                       (*this)(i,j) = mat(i,j);
-                return *this;
-            }
+    template<class T_expr, typename std::enable_if<
+                 is_matrix_expression<typename T_expr::tag>::value&&
+                 is_same_dimension<T_expr::dim_col, dim_col>::value&&
+                 is_same_dimension<T_expr::dim_row, dim_row>::value
+                 >::type*& = enabler>
+    self_type& operator+=(const T_expr& mat)
+    {
+        *this = (*this + mat);
+        return *this;
+    }
 
-            template<class E,
-                     typename std::enable_if<
-                         is_DynamicMatrixExpression<typename E::value_trait>::value
-                         >::type*& = enabler>
-            RealMatrix& operator=(const E& mat)
-            {
-                if(mat.size_col() != col || mat.size_row() != row)
-                    throw std::invalid_argument("different size dynamic matrix");
 
-                for(std::size_t i(0); i<row; ++i)
-                    for(std::size_t j(0); j<col; ++j)
-                        values_[i][j] = mat(i, j);
-                return *this;
-            }
+    template<class T_expr, typename std::enable_if<
+                 is_matrix_expression<typename T_expr::tag>::value&&
+                 is_same_dimension<T_expr::dim_col, dim_col>::value&&
+                 is_same_dimension<T_expr::dim_row, dim_row>::value
+                 >::type*& = enabler>
+    self_type& operator-=(const T_expr& mat)
+    {
+        *this = (*this - mat);
+        return *this;
+    }
 
-            template<class E,
-                     typename std::enable_if<
-                         is_MatrixExpression<typename E::value_trait>::value&&
-                         is_SameSize<E::col, col>::value&&
-                         is_SameSize<E::row, row>::value
-                         >::type*& = enabler>
-            RealMatrix& operator+=(const E& mat)
-            {
-                *this = MatrixAdd<RealMatrix, E>(*this, mat);
-                return *this;
-            }
+    //operator*= can be used in the case of same size matrix
+    template<class T_expr, typename std::enable_if<
+                 is_matrix_expression<typename T_expr::tag>::value&&
+                 is_same_dimension<T_expr::dim_col, dim_col>::value&&
+                 is_same_dimension<T_expr::dim_row, dim_row>::value
+                 >::type*& = enabler>
+    self_type& operator*=(const T_expr& mat)
+    {
+        *this = (*this * mat);
+        return *this;
+    }
 
-            template<class E,
-                     typename std::enable_if<
-                         is_MatrixExpression<typename E::value_trait>::value&&
-                         is_SameSize<E::col, col>::value&&
-                         is_SameSize<E::row, row>::value
-                         >::type*& = enabler>
-            RealMatrix& operator-=(const E& mat)
-            {
-                *this = MatrixSub<RealMatrix, E>(*this, mat);
-                return *this;
-            }
+    self_type& operator*=(const elem_t rhs)
+    {
+        *this = (*this * rhs);
+        return *this;
+    }
 
-            //operator*= can be used in the case of same size matrix
-            template<class E,
-                     typename std::enable_if<
-                         is_MatrixExpression<typename E::value_trait>::value&&
-                         is_SameSize<E::col, col>::value&&
-                         is_SameSize<E::row, row>::value
-                         >::type*& = enabler>
-            RealMatrix& operator*=(const E& mat)
-            {
-                *this = MatrixMul<RealMatrix, E>(*this, mat);
-                return *this;
-            }
+    self_type& operator/=(const elem_t rhs)
+    {
+        *this = (*this / rhs);
+        return *this;
+    }
 
-            RealMatrix& operator*=(const double rhs)
-            {
-                *this = MatrixSclMul<RealMatrix>(rhs, *this);
-                return *this;
-            }
+    elem_t const& operator()(const std::size_t i, const std::size_t j) const
+    {
+        return this->values_[i][j];
+    }
+    elem_t&       operator()(const std::size_t i, const std::size_t j)
+    {
+        return this->values_[i][j];
+    }
+    elem_t const& at(const std::size_t i, const std::size_t j) const
+    {
+        return this->values_.at(i).at(j);
+    }
+    elem_t&       at(const std::size_t i, const std::size_t j)
+    {
+        return this->values_.at(i).at(j);
+    }
 
-            RealMatrix& operator/=(const double rhs)
-            {
-                *this = MatrixSclDiv<RealMatrix>(*this, rhs);
-                return *this;
-            }
+  private:
 
-            double operator()(const std::size_t i, const std::size_t j) const
-            {
-                return values_[i][j];
-            }
+    container_type values_;
+};
 
-            double& operator()(const std::size_t i, const std::size_t j)
-            {
-                return values_[i][j];
-            }
 
-            double at(const std::size_t i, const std::size_t j) const
-            {
-                return values_.at(i).at(j);
-            }
-
-            double& at(const std::size_t i, const std::size_t j)
-            {
-                return values_.at(i).at(j);
-            }
-
-        private:
-
-            std::array<std::array<double, C>, R> values_;
-    };
-
-}
+}//ax
 
 #endif//AX_MATRIX_NxN

@@ -1,227 +1,296 @@
 #ifndef AX_MATRIX_EXPRESSION_H
 #define AX_MATRIX_EXPRESSION_H
-#include "Expression.hpp"
+#include "TypeTraits.hpp"
+#include "OperatorStructs.hpp"
+#include "Dimension.hpp"
+#include <utility>
 
 namespace ax
 {
-    template<class L, class R>
-    class MatrixAdd
+
+
+namespace detail
+{
+
+template <typename T_lhs, typename T_oper, typename T_rhs,
+          dimension_type I_dim_row, dimension_type I_dim_col>
+class MatrixExpression
+{
+  public:
+
+    static_assert(is_operator_struct<typename T_oper::tag>::value,
+                  "invalid Expression Operator");
+
+    using tag = matrix_expression_tag;
+    using elem_t = typename T_lhs::elem_t;
+    constexpr static dimension_type dim_row = I_dim_row;
+    constexpr static dimension_type dim_col = I_dim_col;
+
+    MatrixExpression(const T_lhs& lhs, const T_rhs& rhs)
+        : l_(lhs), r_(rhs)
+    {}
+
+    elem_t operator()(const std::size_t i, const std::size_t j) const
     {
-        public:
-
-            using value_trait = MatrixExp;
-            constexpr static std::size_t row = L::row;
-            constexpr static std::size_t col = L::col;
-
-            MatrixAdd(const L& lhs, const R& rhs)
-                : l(lhs), r(rhs)
-            {}
-
-            double operator()(const std::size_t i, const std::size_t j) const
-            {
-                return l(i,j) + r(i,j);
-            }
-
-        private:
-
-            const L& l;
-            const R& r;
-    };
-
-    template<class L, class R>
-    class MatrixSub
-    {
-        public:
-
-            using value_trait = MatrixExp;
-            constexpr static std::size_t row = L::row;
-            constexpr static std::size_t col = L::col;
-
-            MatrixSub(const L& lhs, const R& rhs)
-                : l(lhs), r(rhs)
-            {}
-
-            double operator()(const std::size_t i, const std::size_t j) const
-            {
-                return l(i,j) - r(i,j);
-            }
-
-        private:
-
-            const L& l;
-            const R& r;
-    };
-
-    template<class L, class R>
-    class MatrixMul
-    {
-        public:
-
-            using value_trait = MatrixExp;
-            constexpr static std::size_t row = L::row;
-            constexpr static std::size_t col = R::col;
-
-            MatrixMul(const L& lhs, const R& rhs)
-                : l(lhs), r(rhs)
-            {}
-
-            double operator()(const std::size_t i, const std::size_t j) const
-            {
-                double retval(0e0);
-                for(std::size_t k(0); k<R::row; ++k)
-                    retval += l(i,k) * r(k,j);
-
-                return retval;
-            }
-
-        private:
-
-            const L& l;
-            const R& r;
-    };
-
-    template<class R>
-    class MatrixSclMul
-    {
-        public:
-
-            using value_trait = MatrixExp;
-            constexpr static std::size_t row = R::row;
-            constexpr static std::size_t col = R::col;
-
-            MatrixSclMul(const double& lhs, const R& rhs)
-                : l(lhs), r(rhs)
-            {}
-
-            double operator()(const std::size_t i, const std::size_t j) const
-            {
-                return l * r(i,j);
-            }
-
-        private:
-
-            const double& l;
-            const R& r;
-    };
-
-    template<class L>
-    class MatrixSclDiv
-    {
-        public:
-
-            using value_trait = MatrixExp;
-            constexpr static std::size_t row = L::row;
-            constexpr static std::size_t col = L::col;
-
-            MatrixSclDiv(const L& lhs, const double& rhs)
-                : l(lhs), r(rhs)
-            {}
-
-            double operator()(const std::size_t i, const std::size_t j) const
-            {
-                return l(i,j) / r;
-            }
-
-        private:
-
-            const L& l;
-            const double& r;
-    };
-
-    template<class L>
-    class MatrixTranspose
-    {
-        public:
-
-            using value_trait = MatrixExp;
-            constexpr static std::size_t row = L::col;
-            constexpr static std::size_t col = L::row;
-
-            MatrixTranspose(const L& lhs)
-                : l(lhs)
-            {}
-
-            double operator()(const std::size_t i, const std::size_t j) const
-            {
-                return l(j,i);
-            }
-
-        private:
-
-            const L& l;
-    };
-
-    template<class L, class R,
-             typename std::enable_if<
-                 is_MatrixExpression<typename L::value_trait>::value&&
-                 is_MatrixExpression<typename R::value_trait>::value&&
-                 is_SameSize<L::row, R::row>::value&&
-                 is_SameSize<L::col, R::col>::value
-                 >::type*& = enabler>
-    MatrixAdd<L, R> operator+(const L& lhs, const R& rhs)
-    {
-        return MatrixAdd<L, R>(lhs, rhs);
+        return T_oper::apply(l_(i,j), r_(i,j));
     }
 
-    template<class L, class R,
-             typename std::enable_if<
-                 is_MatrixExpression<typename L::value_trait>::value&&
-                 is_MatrixExpression<typename R::value_trait>::value&&
-                 is_SameSize<L::row, R::row>::value&&
-                 is_SameSize<L::col, R::col>::value
-                 >::type*& = enabler>
-    MatrixSub<L, R> operator-(const L& lhs, const R& rhs)
+    T_lhs const& l_;
+    T_rhs const& r_;
+};
+
+template <typename T_lhs, typename T_rhs,
+          dimension_type I_dim_row, dimension_type I_dim_col>
+class MatrixProduct
+{
+  public:
+
+    using tag = matrix_expression_tag;
+    using elem_t = typename T_lhs::elem_t;
+    constexpr static dimension_type dim_row = I_dim_row;
+    constexpr static dimension_type dim_col = I_dim_col;
+
+    MatrixProduct(const T_lhs& lhs, const T_rhs& rhs)
+        : l_(lhs), r_(rhs)
+    {}
+
+    elem_t operator()(const std::size_t i, const std::size_t j) const
     {
-        return MatrixSub<L, R>(lhs, rhs);
+        elem_t retval(0);
+        for(std::size_t k(0); k<T_rhs::dim_row; ++k)
+            retval += l_(i,k) * r_(k,j);
+
+        return retval;
     }
 
-    template<class L, class R,
-             typename std::enable_if<
-                 is_MatrixExpression<typename L::value_trait>::value&&
-                 is_MatrixExpression<typename R::value_trait>::value&&
-                 is_SameSize<L::col, R::row>::value
-                 >::type*& = enabler>
-    MatrixMul<L, R> operator*(const L& lhs, const R& rhs)
+    T_lhs const& l_;
+    T_rhs const& r_;
+};
+
+template<typename T_mat, typename T_vec, dimension_type I_dim>
+class MatrixVectorProduct
+{
+  public:
+
+    static_assert(is_matrix_expression<typename T_mat::tag>::value&&
+                  is_vector_expression<typename T_vec::tag>::value,
+                  "in matrix_vector_product, invalid type");
+
+    using tag = vector_expression_tag;
+    using elem_t = typename T_vec::elem_t;
+    constexpr static dimension_type dim = I_dim;
+
+    MatrixVectorProduct(const T_mat& mat, const T_vec& vec)
+        : l_(vec), r_(mat)
+    {}
+
+    elem_t operator[](const std::size_t i) const
     {
-        return MatrixMul<L, R>(lhs, rhs);
+        elem_t retval(0);
+        for(std::size_t j=0; j<dim; ++j)
+            retval += r_(i, j) * l_[j];
+        return retval;
     }
 
-//L is matrix
-    template<class L, class R,
-             typename std::enable_if<
-                 is_MatrixExpression<typename L::value_trait>::value&&
-                 is_ScalarType<R>::value>::type*& = enabler>
-    MatrixSclMul<L> operator*(const L& lhs, const R& rhs)
+    T_vec const& l_; //XXX: for dimension() function!;
+    T_mat const& r_;
+};
+
+template<typename T_mat, typename T_vec, dimension_type I_dim>
+class VectorMatrixProduct
+{
+  public:
+
+    static_assert(is_matrix_expression<typename T_mat::tag>::value&&
+                  is_vector_expression<typename T_vec::tag>::value,
+                  "in vector_matrix_product, invalid type");
+
+    using tag = vector_expression_tag;
+    using elem_t = typename T_vec::elem_t;
+    constexpr static dimension_type dim = I_dim;
+
+    VectorMatrixProduct(const T_vec& vec, const T_mat& mat)
+        : l_(vec), r_(mat)
+    {}
+
+    elem_t operator[](const std::size_t i) const
     {
-        return MatrixSclMul<L>(rhs, lhs);
+        elem_t retval(0);
+        for(std::size_t j=0; j<dim; ++j)
+            retval += l_[j] * r_(j, i);
+        return retval;
     }
 
-//R is matrix
-    template<class L, class R,
-             typename std::enable_if<
-                 is_ScalarType<L>::value&&
-                 is_MatrixExpression<typename R::value_trait>::value
-                 >::type*& = enabler>
-    MatrixSclMul<R> operator*(const L& lhs, const R& rhs)
+    T_vec const& l_;
+    T_mat const& r_;
+};
+
+template<typename T_mat, typename T_oper, typename T_scl>
+class MatrixScalarExpression
+{
+  public:
+
+    using tag = matrix_expression_tag;
+    using elem_t = typename T_mat::elem_t;
+    constexpr static dimension_type dim_row = T_mat::dim_row;
+    constexpr static dimension_type dim_col = T_mat::dim_col;
+
+    static_assert(std::is_same<typename T_mat::elem_t, T_scl>::value,
+            "type of matrix element and scalar different");
+    static_assert(is_operator_struct<typename T_oper::tag>::value,
+                  "invalid Expression Operator");
+
+    MatrixScalarExpression(const T_mat& lhs, const T_scl& rhs)
+        : l_(lhs), r_(rhs)
+    {}
+
+    elem_t operator()(const std::size_t i, const std::size_t j) const
     {
-        return MatrixSclMul<R>(lhs, rhs);
+        return T_oper::apply(l_(i,j), r_);
     }
 
-    template<class L, class R,
-             typename std::enable_if<
-                 is_MatrixExpression<typename L::value_trait>::value&&
-                 is_ScalarType<R>::value>::type*& = enabler>
-    MatrixSclDiv<L> operator/(const L& lhs, const R& rhs)
+    const T_mat& l_;
+    const elem_t r_;
+};
+
+
+template<typename T_mat>
+class MatrixTranspose
+{
+  public:
+
+    using tag = matrix_expression_tag;
+    using elem_t = typename T_mat::elem_t;
+    constexpr static std::size_t dim_row = T_mat::dim_col;
+    constexpr static std::size_t dim_col = T_mat::dim_row;
+
+    MatrixTranspose(const T_mat& mat)
+        : l_(mat)
+    {}
+
+    elem_t operator()(const std::size_t i, const std::size_t j) const
     {
-        return MatrixSclDiv<L>(lhs, rhs);
+        return l_(j, i);
     }
 
-    template<class L, typename std::enable_if<
-                 is_MatrixExpression<typename L::value_trait>::value
-                 >::type*& = enabler>
-    MatrixTranspose<L> transpose(const L& lhs)
-    {
-        return MatrixTranspose<L>(lhs);
-    }
+    T_mat const& l_;
+};
+
+template<template<typename T_l, typename T_r> class T_oper,
+         typename T_lhs, typename T_rhs>
+using matrix_operator_type =
+    T_oper<typename T_lhs::elem_t, typename T_rhs::elem_t>;
+
+template<template<typename T_l, typename T_r> class T_oper,
+         typename T_mat, typename T_scl>
+using matrix_scalar_operator_type = T_oper<typename T_mat::elem_t, T_scl>;
+
+}//detail
+
+// for static + static
+template<class T_lhs, class T_rhs, typename std::enable_if<
+    is_matrix_expression<typename T_lhs::tag>::value&&
+    is_matrix_expression<typename T_rhs::tag>::value&&
+    is_same_dimension<T_lhs::dim_col, T_rhs::dim_col>::value&&
+    is_same_dimension<T_lhs::dim_row, T_rhs::dim_row>::value&&
+    is_static_dimension<T_lhs::dim_col>::value&&
+    is_static_dimension<T_lhs::dim_row>::value
+    >::type*& = enabler>
+inline detail::MatrixExpression<T_lhs,
+    detail::Add_Operator<typename T_lhs::elem_t, typename T_rhs::elem_t>,
+    T_rhs, T_lhs::dim_row, T_lhs::dim_col>
+operator+(const T_lhs& lhs, const T_rhs& rhs)
+{
+    return detail::MatrixExpression<T_lhs, detail::Add_Operator<
+               typename T_lhs::elem_t, typename T_rhs::elem_t>,
+               T_rhs, T_lhs::dim_row, T_lhs::dim_col>(lhs, rhs);
 }
+
+template<class T_lhs, class T_rhs, typename std::enable_if<
+    is_matrix_expression<typename T_lhs::tag>::value&&
+    is_matrix_expression<typename T_rhs::tag>::value&&
+    is_same_dimension<T_lhs::dim_col, T_rhs::dim_col>::value&&
+    is_same_dimension<T_lhs::dim_row, T_rhs::dim_row>::value&&
+    is_static_dimension<T_lhs::dim_col>::value&&
+    is_static_dimension<T_lhs::dim_row>::value
+    >::type*& = enabler>
+inline detail::MatrixExpression<T_lhs,
+    detail::Subtract_Operator<typename T_lhs::elem_t, typename T_rhs::elem_t>,
+    T_rhs, T_lhs::dim_row, T_lhs::dim_col>
+operator-(const T_lhs& lhs, const T_rhs& rhs)
+{
+    return detail::MatrixExpression<T_lhs, detail::Subtract_Operator<
+               typename T_lhs::elem_t, typename T_rhs::elem_t>,
+               T_rhs, T_lhs::dim_row, T_lhs::dim_col>(lhs, rhs);
+}
+
+// for (static, static) * (static, static)
+template<class T_lhs, class T_rhs, typename std::enable_if<
+    is_matrix_expression<typename T_lhs::tag>::value&&
+    is_matrix_expression<typename T_rhs::tag>::value&&
+    is_same_dimension<T_lhs::dim_col, T_rhs::dim_row>::value&&
+    is_static_dimension<T_lhs::dim_col>::value&&
+    is_static_dimension<T_lhs::dim_row>::value&&
+    is_static_dimension<T_rhs::dim_col>::value&&
+    is_static_dimension<T_rhs::dim_row>::value
+    >::type*& = enabler>
+inline detail::MatrixProduct<T_lhs, T_rhs, T_lhs::dim_row, T_rhs::dim_col>
+operator*(const T_lhs& lhs, const T_rhs& rhs)
+{
+    return detail::MatrixProduct<T_lhs, T_rhs,
+               T_lhs::dim_row, T_rhs::dim_col>(lhs, rhs);
+}
+
+//left hand side is matrix
+template<class T_mat, class T_scl,
+         typename std::enable_if<
+             is_matrix_expression<typename T_mat::tag>::value&&
+             std::is_same<typename T_mat::elem_t, T_scl>::value
+             >::type*& = enabler>
+inline detail::MatrixScalarExpression<T_mat,
+    detail::Multiply_Operator<typename T_mat::elem_t, T_scl>, T_scl>
+operator*(const T_mat& lhs, const T_scl& rhs)
+{
+    return detail::MatrixScalarExpression<T_mat,
+        detail::Multiply_Operator<typename T_mat::elem_t, T_scl>,
+        T_scl>(lhs /* = matrix*/, rhs /* = scalar*/);
+}
+
+//right hand side is matrix
+template<class T_scl, class T_mat,
+         typename std::enable_if<
+             is_matrix_expression<typename T_mat::tag>::value&&
+             std::is_same<typename T_mat::elem_t, T_scl>::value
+             >::type*& = enabler>
+inline detail::MatrixScalarExpression<T_mat,
+    detail::Multiply_Operator<typename T_mat::elem_t, T_scl>, T_scl>
+operator*(const T_scl& lhs, const T_mat& rhs)
+{
+    return detail::MatrixScalarExpression<T_mat,
+        detail::Multiply_Operator<typename T_mat::elem_t, T_scl>,
+        T_scl>(rhs /* = matrix*/, lhs /* = scalar*/);
+}
+
+template<class T_mat, class T_scl,
+         typename std::enable_if<
+             is_matrix_expression<typename T_mat::tag>::value&&
+             std::is_same<typename T_mat::elem_t, T_scl>::value
+             >::type*& = enabler>
+inline detail::MatrixScalarExpression<T_mat,
+    detail::Divide_Operator<typename T_mat::elem_t, T_scl>, T_scl>
+operator/(const T_mat& mat, const T_scl& scl)
+{
+    return detail::MatrixScalarExpression<T_mat,
+               detail::Divide_Operator<typename T_mat::elem_t, T_scl>,
+               T_scl>(mat, scl);
+}
+
+template<class T_mat, typename std::enable_if<
+         is_matrix_expression<typename T_mat::tag>::value>::type*& = enabler>
+inline detail::MatrixTranspose<T_mat> transpose(const T_mat& mat)
+{
+    return detail::MatrixTranspose<T_mat>(mat);
+}
+
+}//ax
 #endif//AX_EXPRESSION_H
