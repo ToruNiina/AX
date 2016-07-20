@@ -150,11 +150,19 @@ class Matrix
 
     elem_t const& operator()(const std::size_t i, const std::size_t j) const
     {
+#ifdef AX_PARANOIAC
+        return this->values_.at(i).at(j);
+#else
         return this->values_[i][j];
+#endif
     }
     elem_t&       operator()(const std::size_t i, const std::size_t j)
     {
+#ifdef AX_PARANOIAC
+        return this->values_.at(i).at(j);
+#else
         return this->values_[i][j];
+#endif
     }
     elem_t const& at(const std::size_t i, const std::size_t j) const
     {

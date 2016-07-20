@@ -47,7 +47,7 @@ class Matrix<T_elem, DYNAMIC, DYNAMIC>
     {
         for(auto i=0; i<dimension_row(expr); ++i)
             for(auto j=0; j<dimension_col(expr); ++j)
-                (*this)(i, j) = expr(i, j);
+                this->values_[i][j] = expr(i, j);
     }
 
     // operator = 
@@ -99,12 +99,20 @@ class Matrix<T_elem, DYNAMIC, DYNAMIC>
 
     elem_t const& operator()(const std::size_t i, const std::size_t j) const
     {
+#ifdef AX_PARANOIAC
+        return values_.at(i).at(j);
+#else
         return values_[i][j];
+#endif
     }
 
     elem_t& operator()(const std::size_t i, const std::size_t j)
     {
+#ifdef AX_PARANOIAC
+        return values_.at(i).at(j);
+#else
         return values_[i][j];
+#endif
     }
 
     elem_t const& at(const std::size_t i, const std::size_t j) const
@@ -212,12 +220,20 @@ class Matrix<T_elem, DYNAMIC, I_col>
 
     elem_t const& operator()(const std::size_t i, const std::size_t j) const
     {
+#ifdef AX_PARANOIAC
+        return values_.at(i).at(j);
+#else
         return values_[i][j];
+#endif
     }
 
     elem_t& operator()(const std::size_t i, const std::size_t j)
     {
+#ifdef AX_PARANOIAC
+        return values_.at(i).at(j);
+#else
         return values_[i][j];
+#endif
     }
 
     elem_t const& at(const std::size_t i, const std::size_t j) const
@@ -326,12 +342,20 @@ class Matrix<T_elem, I_row, DYNAMIC>
 
     elem_t const& operator()(const std::size_t i, const std::size_t j) const
     {
+#ifdef AX_PARANOIAC
+        return values_.at(i).at(j);
+#else
         return values_[i][j];
+#endif
     }
 
     elem_t& operator()(const std::size_t i, const std::size_t j)
     {
+#ifdef AX_PARANOIAC
+        return values_.at(i).at(j);
+#else
         return values_[i][j];
+#endif
     }
 
     elem_t const& at(const std::size_t i, const std::size_t j) const
