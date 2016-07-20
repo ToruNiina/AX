@@ -1,9 +1,8 @@
 #ifndef AX_LINEAR_ALGEBRA_H
 #define AX_LINEAR_ALGEBRA_H
-#include "src/MatrixVectorMultiplication.hpp"
-#include "src/InverseMatrix.hpp"
-#include "src/LUDecomposition.hpp"
-#include "src/JacobiMethod.hpp"
+#include "src/Vector.hpp"
+#include "src/DynamicVector.hpp"
+#include "src/Matrix.hpp"
 #include "src/io.hpp"
 
 // reuquire Boost.math
@@ -11,9 +10,9 @@
 
 namespace ax
 {
-    using Vector3d = RealVector<3>;
-    using Matrix3  = RealMatrix<3,3>;
-    using Matrix4  = RealMatrix<4,4>;
+    using Vector3d = Vector<double, 3>;
+    using Matrix3d = Matrix<double, 3,3>;
+    using Matrix4d = Matrix<double, 4,4>;
 }
 
 
