@@ -32,7 +32,11 @@ class VectorExpression
 
     elem_t operator[](const std::size_t i) const
     {
+#ifdef AX_PARANOIAC
+        return T_oper::apply(l_.at(i), r_.at(i));
+#else
         return T_oper::apply(l_[i], r_[i]);
+#endif
     }
 
     T_lhs const& l_;
@@ -61,7 +65,12 @@ class VectorScalarExpression
 
     elem_t operator[](const std::size_t i) const
     {
+#ifdef AX_PARANOIAC
+        return T_oper::apply(l_.at(i), r_);
+#else
         return T_oper::apply(l_[i], r_);
+#endif
+
     }
 
     T_vec const& l_;
@@ -126,12 +135,10 @@ template <class L, class R, typename std::enable_if<
      (is_static_dimension<R::dim>::value&&is_dynamic_dimension<L::dim>::value))&&
     std::is_same<typename L::elem_t, typename R::elem_t>::value
     >::type*& = enabler>
-typename detail::vector_expr_type<L, detail::Add_Operator, R,
+inline typename detail::vector_expr_type<L, detail::Add_Operator, R,
     vector_expression_dimension<L, R>::value>
 operator+(const L& lhs, const R& rhs)
 {
-    if(dimension(lhs) != dimension(rhs))
-        throw std::invalid_argument("in operator+, vector dimension different");
     return detail::VectorExpression<L,
                detail::Add_Operator<typename L::elem_t, typename R::elem_t>,
                R, vector_expression_dimension<L, R>::value>(lhs, rhs);
@@ -160,12 +167,10 @@ template <class L, class R, typename std::enable_if<
      (is_static_dimension<R::dim>::value&&is_dynamic_dimension<L::dim>::value))&&
     std::is_same<typename L::elem_t, typename R::elem_t>::value
     >::type*& = enabler>
-typename detail::vector_expr_type<L, detail::Subtract_Operator, R,
+inline typename detail::vector_expr_type<L, detail::Subtract_Operator, R,
     vector_expression_dimension<L, R>::value>
 operator-(const L& lhs, const R& rhs)
 {
-    if(dimension(lhs) != dimension(rhs))
-        throw std::invalid_argument("in operator-, vector dimension different");
     return detail::VectorExpression<L,
                detail::Subtract_Operator<typename L::elem_t, typename R::elem_t>,
                R, vector_expression_dimension<L, R>::value>(lhs, rhs);
@@ -222,8 +227,13 @@ template <class T_vec,
 constexpr inline typename T_vec::elem_t
 length_square_impl(const T_vec& val, const std::size_t i_dim, const typename T_vec::elem_t sum)
 {
+#ifdef AX_PARANOIAC
+    return (i_dim == 0) ? sum + val.at(i_dim) * val.at(i_dim) :
+        length_square_impl<T_vec>(val, i_dim - 1, sum + val.at(i_dim) * val.at(i_dim));
+#else
     return (i_dim == 0) ? sum + val[i_dim] * val[i_dim] :
         length_square_impl<T_vec>(val, i_dim - 1, sum + val[i_dim] * val[i_dim]);
+#endif
 }
 
 }//detail
@@ -267,9 +277,15 @@ constexpr inline typename T_lhs::elem_t
 dot_prod_impl(const T_lhs& lhs, const T_rhs& rhs, const std::size_t i_dim,
               const typename T_lhs::elem_t sum)
 {
+#ifdef AX_PARANOIAC
+    return (i_dim == 0) ? sum + lhs.at(i_dim) * rhs.at(i_dim) :
+        dot_prod_impl<T_lhs, T_rhs>(
+                lhs, rhs, i_dim - 1, sum + lhs.at(i_dim) * rhs.at(i_dim));
+#else
     return (i_dim == 0) ? sum + lhs[i_dim] * rhs[i_dim] :
         dot_prod_impl<T_lhs, T_rhs>(
                 lhs, rhs, i_dim - 1, sum + lhs[i_dim] * rhs[i_dim]);
+#endif
 }
 
 }//detail
@@ -285,7 +301,7 @@ template <class T_lhs, class T_rhs, typename std::enable_if<
 constexpr inline typename T_lhs::elem_t
 dot_prod(const T_lhs& lhs, const T_rhs& rhs)
 {
-    return detail::dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, T_lhs::dim - 1, 0.0);
+    return detail::dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, dimension(lhs) - 1, 0.0);
 }
 
 // static * dynamic
@@ -296,15 +312,10 @@ template <class T_lhs, class T_rhs, typename std::enable_if<
     is_static_dimension<T_lhs::dim>::value&&
     is_dynamic_dimension<T_rhs::dim>::value
     >::type*& = enabler>
-typename T_lhs::elem_t
+inline typename T_lhs::elem_t
 dot_prod(const T_lhs& lhs, const T_rhs& rhs)
 {
-    if(T_lhs::dim != dimension(rhs)) 
-        throw std::invalid_argument(
-                std::string("in dot_prod, vector size different: lhs = ")
-                + std::to_string(dimension(lhs)) + std::string(", rhs = ")
-                + std::to_string(dimension(rhs)));
-    return detail::dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, T_lhs::dim - 1, 0.0);
+    return detail::dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, dimension(lhs) - 1, 0.0);
 }
 
 // dynamic * static
@@ -315,12 +326,10 @@ template <class T_lhs, class T_rhs, typename std::enable_if<
     is_dynamic_dimension<T_lhs::dim>::value&&
     is_static_dimension<T_rhs::dim>::value
     >::type*& = enabler>
-typename T_lhs::elem_t
+inline typename T_lhs::elem_t
 dot_prod(const T_lhs& lhs, const T_rhs& rhs)
 {
-    if(dimension(lhs) != T_rhs::dim) 
-        throw std::invalid_argument("in dot_prod, vector size different");
-    return detail::dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, T_rhs::dim - 1, 0.0);
+    return detail::dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, dimension(lhs) - 1, 0.0);
 }
 
 // dynamic * dynamic
@@ -331,11 +340,9 @@ template <class T_lhs, class T_rhs, typename std::enable_if<
     is_dynamic_dimension<T_lhs::dim>::value&&
     is_dynamic_dimension<T_rhs::dim>::value
     >::type*& = enabler>
-typename T_lhs::elem_t
+inline typename T_lhs::elem_t
 dot_prod(const T_lhs& lhs, const T_rhs& rhs)
 {
-    if(dimension(lhs) != dimension(rhs))
-        throw std::invalid_argument("in dot_prod, vector size different");
     return detail::dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, dimension(lhs) - 1, 0.0);
 }
 
