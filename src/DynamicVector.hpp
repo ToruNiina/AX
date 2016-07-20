@@ -24,12 +24,12 @@ class Vector
     ~Vector() = default;
 
     Vector(const std::size_t size) : values_(size, 0e0){}
-    Vector(const std::size_t size, const double v) : values_(size, v){}
-    Vector(const std::vector<double>& v) : values_(v){}
-    Vector(std::vector<double>&& v): values_(std::move(v)){}
+    Vector(const std::size_t size, const elem_t v) : values_(size, v){}
+    Vector(const std::vector<elem_t>& v) : values_(v){}
+    Vector(std::vector<elem_t>&& v): values_(std::move(v)){}
 
     template<std::size_t N>
-    Vector(const std::array<double, N>& v): values_(N)
+    Vector(const std::array<elem_t, N>& v): values_(N)
     {
         for(std::size_t i=0; i<N; ++i) values_[i] = v[i];
     }
@@ -65,12 +65,12 @@ class Vector
     }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ operator = ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Vector<elem_t, dim>& operator=(const std::vector<double>& v)
+    Vector<elem_t, dim>& operator=(const std::vector<elem_t>& v)
     {
         this->values_ = v; return *this;
     }
 
-    Vector<elem_t, dim>& operator=(std::vector<double>&& v)
+    Vector<elem_t, dim>& operator=(std::vector<elem_t>&& v)
     {
         this->values_ = std::move(v); return *this;
     }
