@@ -48,10 +48,9 @@ class Matrix
     }
 
     template<class T_expr, typename std::enable_if<
-                 is_matrix_expression<typename T_expr::tag>::value&&
-                 is_same_dimension<T_expr::dim_col, dim_col>::value&&
-                 is_same_dimension<T_expr::dim_row, dim_row>::value
-                 >::type*& = enabler>
+        is_matrix_expression<typename T_expr::tag>::value&&
+        is_same_dimension<T_expr::dim_col, dim_col>::value&&
+        is_same_dimension<T_expr::dim_row, dim_row>::value>::type*& = enabler>
     Matrix(const T_expr& mat)
     {
          for(std::size_t i(0); i<dim_row; ++i)
@@ -60,10 +59,9 @@ class Matrix
     }
 
     template<class T_expr, typename std::enable_if<
-                 is_matrix_expression<typename T_expr::tag>::value&&
-                 is_dynamic_dimension<T_expr::dim_col>::value&&
-                 is_same_dimension<T_expr::dim_row, dim_row>::value
-                 >::type*& = enabler>
+        is_matrix_expression<typename T_expr::tag>::value&&
+        is_dynamic_dimension<T_expr::dim_col>::value&&
+        is_same_dimension<T_expr::dim_row, dim_row>::value>::type*& = enabler>
     Matrix(const T_expr& mat)
     {
         if(dimension_col(mat) != dim_col)
@@ -75,10 +73,9 @@ class Matrix
     }
 
     template<class T_expr, typename std::enable_if<
-                 is_matrix_expression<typename T_expr::tag>::value&&
-                 is_same_dimension<T_expr::dim_col, dim_col>::value&&
-                 is_dynamic_dimension<T_expr::dim_row>::value
-                 >::type*& = enabler>
+        is_matrix_expression<typename T_expr::tag>::value&&
+        is_same_dimension<T_expr::dim_col, dim_col>::value&&
+        is_dynamic_dimension<T_expr::dim_row>::value>::type*& = enabler>
     Matrix(const T_expr& mat)
     {
         if(dimension_row(mat) != dim_row)
@@ -90,10 +87,9 @@ class Matrix
     }
 
     template<class T_expr, typename std::enable_if<
-                 is_matrix_expression<typename T_expr::tag>::value&&
-                 is_dynamic_dimension<T_expr::dim_col>::value&&
-                 is_dynamic_dimension<T_expr::dim_row>::value
-                 >::type*& = enabler>
+        is_matrix_expression<typename T_expr::tag>::value&&
+        is_dynamic_dimension<T_expr::dim_col>::value&&
+        is_dynamic_dimension<T_expr::dim_row>::value>::type*& = enabler>
     Matrix(const T_expr& mat)
     {
         if(dimension_row(mat) != dim_row || dimension_col(mat) != dim_col)
@@ -127,7 +123,6 @@ class Matrix
         return *this = (*this + mat);
     }
 
-
     template<class T_expr, typename std::enable_if<
         is_matrix_expression<typename T_expr::tag>::value&&
         is_same_dimension<T_expr::dim_col, dim_col>::value&&
@@ -140,6 +135,7 @@ class Matrix
     //operator*= can be used in the case of same size matrix
     template<class T_expr, typename std::enable_if<
         is_matrix_expression<typename T_expr::tag>::value&&
+        is_same_dimension<dim_col, dim_row>::value&&
         is_same_dimension<T_expr::dim_col, dim_col>::value&&
         is_same_dimension<T_expr::dim_row, dim_row>::value>::type*& = enabler>
     self_type& operator*=(const T_expr& mat)
