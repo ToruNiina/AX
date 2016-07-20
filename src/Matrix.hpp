@@ -13,9 +13,7 @@ namespace ax
   O ( M_10  .        .   )
   W (  ...       .   .   )
   s ( M_R0 ...      M_RC ) */
-template<typename T_elem, dimension_type I_row, dimension_type I_col,
-         typename std::enable_if<is_static_dimension<I_row>::value&&
-             is_static_dimension<I_col>::value>::type*& = enabler>
+template<typename T_elem, dimension_type I_row, dimension_type I_col>
 class Matrix
 {
   public:
@@ -41,10 +39,7 @@ class Matrix
     // to make Identity matrix
     Matrix(const elem_t d) : values_{{{}}}
     {
-        for(std::size_t i(0); i<dim_row; ++i)
-            for(std::size_t j(0); j<dim_col; ++j)
-                if(i == j)
-                    values_[i][i] = d;
+        for(std::size_t i(0); i<dim_row; ++i) values_[i][i] = d;
     }
 
     template<class T_expr, typename std::enable_if<
