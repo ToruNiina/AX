@@ -45,7 +45,7 @@ class MatrixProduct
 {
   public:
 
-    using tag = matrix_expression_tag;
+    using tag = matrix_product_tag;
     using elem_t = typename T_lhs::elem_t;
     constexpr static dimension_type dim_row = I_dim_row;
     constexpr static dimension_type dim_col = I_dim_col;
@@ -57,7 +57,7 @@ class MatrixProduct
     elem_t operator()(const std::size_t i, const std::size_t j) const
     {
         elem_t retval(0);
-        for(std::size_t k(0); k<T_rhs::dim_row; ++k)
+        for(std::size_t k(0); k<dimension_row(r_); ++k)
             retval += l_(i,k) * r_(k,j);
 
         return retval;
@@ -159,14 +159,12 @@ class MatrixTranspose
 {
   public:
 
-    using tag = matrix_expression_tag;
+    using tag = matrix_transpose_tag;
     using elem_t = typename T_mat::elem_t;
     constexpr static std::size_t dim_row = T_mat::dim_col;
     constexpr static std::size_t dim_col = T_mat::dim_row;
 
-    MatrixTranspose(const T_mat& mat)
-        : l_(mat)
-    {}
+    MatrixTranspose(const T_mat& mat): l_(mat){}
 
     elem_t operator()(const std::size_t i, const std::size_t j) const
     {
@@ -187,15 +185,12 @@ using matrix_scalar_operator_type = T_oper<typename T_mat::elem_t, T_scl>;
 
 }//detail
 
-// for static + static
+// for static + static, dyn + dyn
 template<class T_lhs, class T_rhs, typename std::enable_if<
     is_matrix_expression<typename T_lhs::tag>::value&&
     is_matrix_expression<typename T_rhs::tag>::value&&
     is_same_dimension<T_lhs::dim_col, T_rhs::dim_col>::value&&
-    is_same_dimension<T_lhs::dim_row, T_rhs::dim_row>::value&&
-    is_static_dimension<T_lhs::dim_col>::value&&
-    is_static_dimension<T_lhs::dim_row>::value
-    >::type*& = enabler>
+    is_same_dimension<T_lhs::dim_row, T_rhs::dim_row>::value>::type*& = enabler>
 inline detail::MatrixExpression<T_lhs,
     detail::Add_Operator<typename T_lhs::elem_t, typename T_rhs::elem_t>,
     T_rhs, T_lhs::dim_row, T_lhs::dim_col>
@@ -206,13 +201,12 @@ operator+(const T_lhs& lhs, const T_rhs& rhs)
                T_rhs, T_lhs::dim_row, T_lhs::dim_col>(lhs, rhs);
 }
 
+// for static + static, dyn + dyn
 template<class T_lhs, class T_rhs, typename std::enable_if<
     is_matrix_expression<typename T_lhs::tag>::value&&
     is_matrix_expression<typename T_rhs::tag>::value&&
     is_same_dimension<T_lhs::dim_col, T_rhs::dim_col>::value&&
-    is_same_dimension<T_lhs::dim_row, T_rhs::dim_row>::value&&
-    is_static_dimension<T_lhs::dim_col>::value&&
-    is_static_dimension<T_lhs::dim_row>::value
+    is_same_dimension<T_lhs::dim_row, T_rhs::dim_row>::value
     >::type*& = enabler>
 inline detail::MatrixExpression<T_lhs,
     detail::Subtract_Operator<typename T_lhs::elem_t, typename T_rhs::elem_t>,
@@ -240,6 +234,22 @@ operator*(const T_lhs& lhs, const T_rhs& rhs)
     return detail::MatrixProduct<T_lhs, T_rhs,
                T_lhs::dim_row, T_rhs::dim_col>(lhs, rhs);
 }
+// for (static, static) * (static, static)
+template<class T_lhs, class T_rhs, typename std::enable_if<
+    is_matrix_expression<typename T_lhs::tag>::value&&
+    is_matrix_expression<typename T_rhs::tag>::value&&
+    is_dynamic_dimension<T_lhs::dim_col>::value&&
+    is_dynamic_dimension<T_lhs::dim_row>::value&&
+    is_dynamic_dimension<T_rhs::dim_col>::value&&
+    is_dynamic_dimension<T_rhs::dim_row>::value
+    >::type*& = enabler>
+inline detail::MatrixProduct<T_lhs, T_rhs, T_lhs::dim_row, T_rhs::dim_col>
+operator*(const T_lhs& lhs, const T_rhs& rhs)
+{
+    return detail::MatrixProduct<T_lhs, T_rhs,
+               T_lhs::dim_row, T_rhs::dim_col>(lhs, rhs);
+}
+
 
 //left hand side is matrix
 template<class T_mat, class T_scl,

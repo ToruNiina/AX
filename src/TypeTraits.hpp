@@ -13,6 +13,8 @@ namespace ax
     struct operator_tag{};
     struct matrix_tag{};
     struct matrix_expression_tag{};
+    struct matrix_product_tag{};
+    struct matrix_transpose_tag{};
     struct vector_tag{};
     struct vector_expression_tag{};
     struct avx_operation_tag{};
@@ -37,12 +39,26 @@ namespace ax
     template<>
     struct is_exactly_matrix_expr<matrix_expression_tag>: public std::true_type{};
 
+    template<typename T>
+    struct is_exactly_matrix_prod : public std::false_type {};
+    template<>
+    struct is_exactly_matrix_prod<matrix_product_tag>: public std::true_type{};
+
+    template<typename T>
+    struct is_exactly_matrix_trans : public std::false_type {};
+    template<>
+    struct is_exactly_matrix_trans<matrix_transpose_tag>: public std::true_type{};
+
     template <typename T>
     struct is_matrix_expression: public std::false_type{};
     template <>
     struct is_matrix_expression<matrix_tag>: public std::true_type{};
     template <>
     struct is_matrix_expression<matrix_expression_tag>: public std::true_type{};
+    template <>
+    struct is_matrix_expression<matrix_product_tag>: public std::true_type{};
+    template <>
+    struct is_matrix_expression<matrix_transpose_tag>: public std::true_type{};
 
     template<typename T>
     struct is_vector_type : public std::false_type {};
