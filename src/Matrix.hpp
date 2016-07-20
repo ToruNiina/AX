@@ -2,7 +2,7 @@
 #define AX_MATRIX_H
 #include <array>
 #include <iostream>
-#include "MatrixExp.hpp"
+#include "MatrixExpression.hpp"
 
 namespace ax
 {
