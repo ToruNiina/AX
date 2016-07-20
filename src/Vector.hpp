@@ -9,8 +9,7 @@ namespace ax
 {
 
 // static dimension case
-template<typename T_elem, dimension_type I_dim, typename std::enable_if<
-    is_static_dimension<I_dim>::value>::type*& = enabler>
+template<typename T_elem, dimension_type I_dim>
 class Vector
 {
   public:

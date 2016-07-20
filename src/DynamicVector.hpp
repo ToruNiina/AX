@@ -1,6 +1,6 @@
 #ifndef AX_DYNAMIC_VECTOR_H
 #define AX_DYNAMIC_VECTOR_H
-#include "VectorExpression.hpp"
+#include "Vector.hpp"
 #include <iostream>
 #include <vector>
 #include <array>
@@ -8,16 +8,14 @@
 namespace ax
 {
 
-template<typename T_elem, dimension_type I_dim,
-         typename std::enable_if<is_dynamic_dimension<I_dim>::value
-             >::type*& = enabler>
-class Vector
+template<typename T_elem>
+class Vector<T_elem, DYNAMIC>
 {
   public:
 
     using tag = vector_tag;
     using elem_t = T_elem;
-    constexpr static dimension_type dim = I_dim;
+    constexpr static dimension_type dim = DYNAMIC;
 
   public:
     Vector(){}
