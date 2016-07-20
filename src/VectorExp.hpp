@@ -73,7 +73,7 @@ template <typename T_vec /* = Vector */, typename T_oper,
           typename T_scl /* = Scalar */,
           typename std::enable_if<
               is_vector_expression<typename T_vec::tag>::value&&
-              is_scalar_type<T_scl, T_vec>::value
+              std::is_same<T_scl, typename T_vec::elem_t>::value
               >::type*& = enabler>
 class VectorScalarExpression
 {
@@ -96,6 +96,29 @@ class VectorScalarExpression
 
     T_vec const& l_;
     T_scl const  r_;
+};
+
+template <typename T_lhs, typename T_rhs>
+class Vector3DCrossProduct
+{
+  public:
+    using tag = vector_expression_tag;
+    using elem_t = typename T_lhs::elem_t;
+    constexpr static dimension_type dim = T_lhs::dim;
+
+    Vector3DCrossProduct(const T_lhs& lhs, const T_rhs& rhs)
+        : l_(lhs), r_(rhs)
+    {}
+
+    elem_t operator[](const std::size_t i) const
+    {
+        using circ = circular_iteration<3>;
+        return l_[circ::advance(i)] * r_[circ::retreat(i)] -
+               l_[circ::retreat(i)] * r_[circ::advance(i)];
+    }
+
+    T_lhs const& l_;
+    T_rhs const& r_;
 };
 
 // operator definitions Some_Operator::apply(lhs, rhs) return lhs (op) rhs {{{
@@ -144,34 +167,15 @@ using vector_expr_type =
     VectorExpression<T_lhs, vector_operator_type<T_oper, T_lhs, T_rhs>, T_rhs, I_dim>;
 // }}}
 
-template <typename T_lhs, typename T_rhs>
-class Vector3DCrossProduct
-{
-  public:
-    using tag = vector_expression_tag;
-    using elem_t = typename T_lhs::elem_t;
-    constexpr static dimension_type dim = T_lhs::dim;
-
-    Vector3DCrossProduct(const T_lhs& lhs, const T_rhs& rhs)
-        : l_(lhs), r_(rhs)
-    {}
-
-    elem_t operator[](const std::size_t i) const
-    {
-        using circ = circular_iteration<3>;
-        return l_[circ::advance(i)] * r_[circ::retreat(i)] -
-               l_[circ::retreat(i)] * r_[circ::advance(i)];
-    }
-
-    T_lhs const& l_;
-    T_rhs const& r_;
-};
-
 } // detail
 
 // for static + static or dynamic + dynamic
-template <class L, class R,
-          typename std::enable_if<is_same_vector<L,R>::value>::type*& = enabler>
+template <class L, class R, typename std::enable_if<
+    is_vector_expression<typename L::tag>::value&&
+    is_vector_expression<typename R::tag>::value&&
+    is_same_dimension<L::dim, R::dim>::value&&
+    std::is_same<typename L::elem_t, typename R::elem_t>::value
+    >::type*& = enabler>
 inline typename detail::vector_expr_type<L, detail::Add_Operator, R, L::dim>
 operator+(const L& lhs, const R& rhs)
 {
@@ -182,11 +186,12 @@ operator+(const L& lhs, const R& rhs)
 
 // for static + dynamic or dynamic + static
 template <class L, class R, typename std::enable_if<
-          is_vector_expression<typename L::tag>::value&&
-          is_vector_expression<typename R::tag>::value&&
-          is_static_dynamic_pair<L,R>::value&&
-          std::is_same<typename L::elem_t, typename R::elem_t>::value
-          >::type*& = enabler>
+    is_vector_expression<typename L::tag>::value&&
+    is_vector_expression<typename R::tag>::value&&
+    ((is_static_dimension<L::dim>::value&&is_dynamic_dimension<R::dim>::value)||
+     (is_static_dimension<R::dim>::value&&is_dynamic_dimension<L::dim>::value))&&
+    std::is_same<typename L::elem_t, typename R::elem_t>::value
+    >::type*& = enabler>
 typename detail::vector_expr_type<L, detail::Add_Operator, R,
     vector_expression_dimension<L, R>::value>
 operator+(const L& lhs, const R& rhs)
@@ -199,8 +204,12 @@ operator+(const L& lhs, const R& rhs)
 }
 
 // for static + static or dynamic + dynamic
-template <class L, class R,
-          typename std::enable_if<is_same_vector<L,R>::value>::type*& = enabler>
+template <class L, class R, typename std::enable_if<
+    is_vector_expression<typename L::tag>::value&&
+    is_vector_expression<typename R::tag>::value&&
+    is_same_dimension<L::dim, R::dim>::value&&
+    std::is_same<typename L::elem_t, typename R::elem_t>::value
+    >::type*& = enabler>
 inline typename detail::vector_expr_type<L, detail::Subtract_Operator, R, L::dim>
 operator-(const L& lhs, const R& rhs)
 {
@@ -211,11 +220,12 @@ operator-(const L& lhs, const R& rhs)
 
 // for static + dynamic or dynamic + static
 template <class L, class R, typename std::enable_if<
-          is_vector_expression<typename L::tag>::value&&
-          is_vector_expression<typename R::tag>::value&&
-          is_static_dynamic_pair<L,R>::value&&
-          std::is_same<typename L::elem_t, typename R::elem_t>::value
-          >::type*& = enabler>
+    is_vector_expression<typename L::tag>::value&&
+    is_vector_expression<typename R::tag>::value&&
+    ((is_static_dimension<L::dim>::value&&is_dynamic_dimension<R::dim>::value)||
+     (is_static_dimension<R::dim>::value&&is_dynamic_dimension<L::dim>::value))&&
+    std::is_same<typename L::elem_t, typename R::elem_t>::value
+    >::type*& = enabler>
 typename detail::vector_expr_type<L, detail::Subtract_Operator, R,
     vector_expression_dimension<L, R>::value>
 operator-(const L& lhs, const R& rhs)
@@ -228,45 +238,44 @@ operator-(const L& lhs, const R& rhs)
 }
 
 // vector * scalar
-template <class L /* = Vector */, class R /* = Scalar */,
-          typename std::enable_if<
-              is_vector_expression<typename L::tag>::value&&
-              is_scalar_type<R, L>::value
-              >::type*& = enabler>
-inline detail::VectorScalarExpression<L,
-    detail::Multiply_Operator<typename L::elem_t, R>, R>
-operator*(const L& lhs, const R& rhs)
+template <class T_vec, class T_scl, typename std::enable_if<
+    is_vector_expression<typename T_vec::tag>::value&&
+    std::is_same<typename T_vec::elem_t, T_scl>::value>::type*& = enabler>
+inline detail::VectorScalarExpression<T_vec,
+    detail::Multiply_Operator<typename T_vec::elem_t, T_scl>, T_scl>
+operator*(const T_vec& lhs, const T_scl& rhs)
 {
-    return detail::VectorScalarExpression<L,
-               detail::Multiply_Operator<typename L::elem_t, R>, R>(lhs, rhs);
+    return detail::VectorScalarExpression<T_vec,
+               detail::Multiply_Operator<typename T_vec::elem_t, T_scl>,
+               T_scl>(lhs, rhs);
 }
 
 // scalar * vector
-template <class L /* = Scalar */, class R /* = Vector */,
-          typename std::enable_if<
-              is_vector_expression<typename R::tag>::value&&
-              is_scalar_type<L, R>::value
-              >::type*& = enabler>
-inline detail::VectorScalarExpression<R,
-    detail::Multiply_Operator<typename R::elem_t, L>, L>
-operator*(const L& lhs, const R& rhs)
+template <class T_scl, class T_vec, typename std::enable_if<
+    is_vector_expression<typename T_vec::tag>::value&&
+    std::is_same<T_scl, typename T_vec::elem_t>::value
+    >::type*& = enabler>
+inline detail::VectorScalarExpression<T_vec,
+    detail::Multiply_Operator<typename T_vec::elem_t, T_scl>, T_scl>
+operator*(const T_scl& lhs, const T_vec& rhs)
 {
-    return detail::VectorScalarExpression<R,
-               detail::Multiply_Operator<typename R::elem_t, L>, L>(rhs, lhs);
+    return detail::VectorScalarExpression<T_vec,
+               detail::Multiply_Operator<typename T_vec::elem_t,
+               T_scl>, T_scl>(rhs, lhs);
 }
 
 // vector / scalar
-template <class L /* = Vector */, class R /* = Scalar */,
-          typename std::enable_if<
-              is_vector_expression<typename L::tag>::value&&
-              is_scalar_type<R, L>::value
-              >::type*& = enabler>
-inline detail::VectorScalarExpression<L,
-    detail::Divide_Operator<typename L::elem_t, R>, R>
-operator/(const L& lhs, const R& rhs)
+template <class T_vec, class T_scl, typename std::enable_if<
+    is_vector_expression<typename T_vec::tag>::value&&
+    std::is_same<T_scl, typename T_vec::elem_t>::value
+    >::type*& = enabler>
+inline detail::VectorScalarExpression<T_vec,
+    detail::Divide_Operator<typename T_vec::elem_t, T_scl>, T_scl>
+operator/(const T_vec& lhs, const T_scl& rhs)
 {
-    return detail::VectorScalarExpression<L,
-               detail::Divide_Operator<typename L::elem_t, R>, R>(lhs, rhs);
+    return detail::VectorScalarExpression<T_vec,
+               detail::Divide_Operator<typename T_vec::elem_t, T_scl>,
+               T_scl>(lhs, rhs);
 }
 
 namespace detail
@@ -317,26 +326,28 @@ inline typename T_vec::elem_t length(const T_vec& l)
 namespace detail
 {
 
-template <class T_lhs, class T_rhs,
-          typename std::enable_if<
-              is_same_vector<T_lhs, T_rhs>::value>::type*& = enabler>
+template <class T_lhs, class T_rhs, typename std::enable_if<
+    is_vector_expression<typename T_lhs::tag>::value&&
+    is_vector_expression<typename T_rhs::tag>::value>::type*& = enabler>
 constexpr inline typename T_lhs::elem_t
 dot_prod_impl(const T_lhs& lhs, const T_rhs& rhs, const std::size_t i_dim,
               const typename T_lhs::elem_t sum)
 {
     return (i_dim == 0) ? sum + lhs[i_dim] * rhs[i_dim] :
-        dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, i_dim - 1, sum + lhs[i_dim] * rhs[i_dim]);
+        dot_prod_impl<T_lhs, T_rhs>(
+                lhs, rhs, i_dim - 1, sum + lhs[i_dim] * rhs[i_dim]);
 }
 
 }//detail
 
 // static * static
 template <class T_lhs, class T_rhs, typename std::enable_if<
-              is_same_vector<T_lhs, T_rhs>::value&&
-              is_static_dimension<T_lhs::dim>::value&&
-              is_static_dimension<T_rhs::dim>::value&&
-              is_same_dimension<T_lhs::dim, T_rhs::dim>::value
-              >::type*& = enabler>
+    is_vector_expression<typename T_lhs::tag>::value&&
+    is_vector_expression<typename T_rhs::tag>::value&&
+    std::is_same<typename T_lhs::elem_t, typename T_rhs::elem_t>::value&&
+    is_static_dimension<T_lhs::dim>::value&&
+    is_same_dimension<T_lhs::dim, T_rhs::dim>::value
+    >::type*& = enabler>
 constexpr inline typename T_lhs::elem_t
 dot_prod(const T_lhs& lhs, const T_rhs& rhs)
 {
@@ -345,10 +356,12 @@ dot_prod(const T_lhs& lhs, const T_rhs& rhs)
 
 // static * dynamic
 template <class T_lhs, class T_rhs, typename std::enable_if<
-              is_same_vector<T_lhs, T_rhs>::value&&
-              is_static_dimension<T_lhs::dim>::value&&
-              is_dynamic_dimension<T_rhs::dim>::value
-              >::type*& = enabler>
+    is_vector_expression<typename T_lhs::tag>::value&&
+    is_vector_expression<typename T_rhs::tag>::value&&
+    std::is_same<typename T_lhs::elem_t, typename T_rhs::elem_t>::value&&
+    is_static_dimension<T_lhs::dim>::value&&
+    is_dynamic_dimension<T_rhs::dim>::value
+    >::type*& = enabler>
 typename T_lhs::elem_t
 dot_prod(const T_lhs& lhs, const T_rhs& rhs)
 {
@@ -362,10 +375,12 @@ dot_prod(const T_lhs& lhs, const T_rhs& rhs)
 
 // dynamic * static
 template <class T_lhs, class T_rhs, typename std::enable_if<
-              is_same_vector<T_lhs, T_rhs>::value&&
-              is_dynamic_dimension<T_lhs::dim>::value&&
-              is_static_dimension<T_rhs::dim>::value
-              >::type*& = enabler>
+    is_vector_expression<typename T_lhs::tag>::value&&
+    is_vector_expression<typename T_rhs::tag>::value&&
+    std::is_same<typename T_lhs::elem_t, typename T_rhs::elem_t>::value&&
+    is_dynamic_dimension<T_lhs::dim>::value&&
+    is_static_dimension<T_rhs::dim>::value
+    >::type*& = enabler>
 typename T_lhs::elem_t
 dot_prod(const T_lhs& lhs, const T_rhs& rhs)
 {
@@ -376,10 +391,12 @@ dot_prod(const T_lhs& lhs, const T_rhs& rhs)
 
 // dynamic * dynamic
 template <class T_lhs, class T_rhs, typename std::enable_if<
-              is_same_vector<T_lhs, T_rhs>::value&&
-              is_dynamic_dimension<T_lhs::dim>::value&&
-              is_dynamic_dimension<T_rhs::dim>::value
-              >::type*& = enabler>
+    is_vector_expression<typename T_lhs::tag>::value&&
+    is_vector_expression<typename T_rhs::tag>::value&&
+    std::is_same<typename T_lhs::elem_t, typename T_rhs::elem_t>::value&&
+    is_dynamic_dimension<T_lhs::dim>::value&&
+    is_dynamic_dimension<T_rhs::dim>::value
+    >::type*& = enabler>
 typename T_lhs::elem_t
 dot_prod(const T_lhs& lhs, const T_rhs& rhs)
 {
@@ -388,12 +405,13 @@ dot_prod(const T_lhs& lhs, const T_rhs& rhs)
     return detail::dot_prod_impl<T_lhs, T_rhs>(lhs, rhs, dimension(lhs) - 1, 0.0);
 }
 
-template <class T_lhs, class T_rhs,
-          typename std::enable_if<
-              is_static_dimension<T_lhs::dim>::value&&
-              is_same_dimension<T_lhs::dim, 3>::value&&
-              is_same_vector<T_lhs, T_rhs>::value
-              >::type*& = enabler>
+template <class T_lhs, class T_rhs, typename std::enable_if<
+    is_vector_expression<typename T_lhs::tag>::value&&
+    is_vector_expression<typename T_rhs::tag>::value&&
+    std::is_same<typename T_lhs::elem_t, typename T_rhs::elem_t>::value&&
+    is_same_dimension<T_lhs::dim, 3>::value&&
+    is_same_dimension<T_rhs::dim, 3>::value
+    >::type*& = enabler>
 inline detail::Vector3DCrossProduct<T_lhs, T_rhs>
 cross_prod(const T_lhs& lhs, const T_rhs& rhs)
 {

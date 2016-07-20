@@ -7,8 +7,8 @@ namespace ax
 {
     extern void* enabler; //never defined
 
-    using dimension_type = int;
-    constexpr static dimension_type DYNAMIC = -1;
+    using dimension_type = std::size_t;
+    constexpr static dimension_type DYNAMIC = 0;
 
     struct operator_tag{};
     struct matrix_tag{};
@@ -18,11 +18,9 @@ namespace ax
     struct avx_operation_tag{};
 
     template <dimension_type I_dim>
-    struct is_static_dimension{constexpr static bool value = I_dim > 0;};
+    struct is_static_dimension{constexpr static bool value = (I_dim > 0);};
     template <dimension_type I_dim>
-    struct is_dynamic_dimension{constexpr static bool value = I_dim < 0;};
-    template <dimension_type I_dim>
-    struct is_void_dimension{constexpr static bool value = I_dim == 0;};
+    struct is_dynamic_dimension{constexpr static bool value = (I_dim == 0);};
 
     template <typename T>
     struct is_operator_struct : public std::false_type{};
@@ -67,36 +65,6 @@ namespace ax
     struct is_same_dimension: public std::false_type{};
     template <dimension_type I_dim>
     struct is_same_dimension<I_dim, I_dim>: public std::true_type{};
-
-    template <dimension_type I_dim>
-    struct is_scalar{constexpr static bool value = (I_dim == 0);};
-
-    template <typename T, typename T_vec>
-    struct is_scalar_type
-    {
-        constexpr static bool value =
-            std::is_same<T, typename T_vec::elem_t>::value;
-    };
-
-    template <typename T_lhs, typename T_rhs>
-    struct is_same_vector
-    {
-        constexpr static bool value =
-            is_vector_expression<typename T_lhs::tag>::value&&
-            is_vector_expression<typename T_rhs::tag>::value&&
-            is_same_dimension<T_lhs::dim, T_rhs::dim>::value&&
-            std::is_same<typename T_lhs::elem_t, typename T_rhs::elem_t>::value;
-    };
-
-    template<typename T_lhs, typename T_rhs>
-    struct is_static_dynamic_pair
-    {
-        constexpr static bool value = 
-            (is_static_dimension<T_lhs::dim>::value &&
-             is_dynamic_dimension<T_rhs::dim>::value) || 
-            (is_dynamic_dimension<T_lhs::dim>::value &&
-             is_static_dimension<T_rhs::dim>::value);
-    };
 
     template<typename T_lhs, typename T_rhs>
     struct vector_expression_dimension

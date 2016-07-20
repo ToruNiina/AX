@@ -6,12 +6,12 @@
 namespace ax
 {
 
-template <class T_lhs, class T_rhs,
-          typename std::enable_if<
-              is_static_dimension<T_lhs::dim>::value&&
-              is_same_dimension<T_lhs::dim, 3>::value&&
-              is_same_vector<T_lhs, T_rhs>::value
-              >::type*& = enabler>
+template <class T_lhs, class T_rhs, typename std::enable_if<
+    is_vector_expression<typename T_lhs::tag>::value&&
+    is_vector_expression<typename T_rhs::tag>::value&&
+    is_same_dimension<T_lhs::dim, 3>::value&&
+    is_same_dimension<T_rhs::dim, 3>::value
+    >::type*& = enabler>
 Vector<typename T_lhs::elem_t, 3>
 rotation(const double angle, const T_lhs& axis, const T_rhs& target)
 {
