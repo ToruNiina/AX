@@ -1,151 +1,142 @@
 #ifndef AX_DYNAMIC_MATRIX
 #define AX_DYNAMIC_MATRIX
-#include "DynamicMatrixExp.hpp"
-#include <iostream>
-#include <utility>
+#include "MatrixExpression.hpp"
 #include <vector>
+#include <stdexcept>
 
 namespace ax
 {
 
-class RealDynamicMatrix
-{
-  public:
-
-    using value_trait = DynamicMatrix;
-    /*   C x R matrix
+/*   C x R matrix
      C O L U M N s
   R ( M_00 M_01 ... M_0C )
   O ( M_10  .        .   )
   W (  ...       .   .   )
-  s ( M_R0 ...      M_RC )
-    */
+  s ( M_R0 ...      M_RC ) */
+   
+template <typename T_elem, dimension_type I_row, dimension_type I_col,
+    typename std::enable_if<is_dynamic_dimension<I_row>::value&&
+    is_dynamic_dimension<I_col>::value>::type*& = enabler>
+class Matrix
+{
+  public:
+
+    using tag = matrix_tag;
+    using elem_t = T_elem;
+    constexpr static dimension_type dim_row = I_row;//number of row
+    constexpr static dimension_type dim_col = I_col;//number of column
+    using nest_container_type = std::vector<elem_t>;
+    using container_type = std::vector<nest_container_type>;
+    using self_type = Matrix<elem_t, dim_row, dim_col>;
 
   public:
-    RealDynamicMatrix(){};
-    ~RealDynamicMatrix() = default;
+    Matrix(){}
+    ~Matrix() = default;
 
-    RealDynamicMatrix(const std::size_t Row, const std::size_t Col)
+    Matrix(const std::size_t Row, const std::size_t Col)
         : values_(Row, std::vector<double>(Col, 0e0))
     {}
 
-    RealDynamicMatrix(const std::vector<std::vector<double>>& val)
-        : values_(val)
-    {
-        if(val.empty())       throw std::invalid_argument("empty data");
-        if(val.at(0).empty()) throw std::invalid_argument("empty data");
+    Matrix(const std::vector<std::vector<double>>& val): values_(val)
+    {}
 
-        const std::size_t col_size = val.at(0).size();
-        for(auto iter = val.cbegin(); iter != val.cend(); ++iter)
-            if(iter->size() != col_size)
-                throw std::invalid_argument("invalid size");
-    }
-
-    RealDynamicMatrix(const RealDynamicMatrix& mat)
+    Matrix(const Matrix<elem_t, dim_row, dim_col>& mat)
         : values_(mat.values_)
     {}
 
-    RealDynamicMatrix(RealDynamicMatrix&& mat)
+    Matrix(Matrix<elem_t, dim_row, dim_col>&& mat)
         : values_(std::move(mat.values_))
     {}
 
-    template<class E,
-             typename std::enable_if<
-                 is_DynamicMatrixExpression<typename E::value_trait>::value
-                 >::type*& = enabler>
-    RealDynamicMatrix(const E& exp)
-        : values_(exp.size_row(), std::vector<double>(exp.size_col(), 0e0))
+    template<class T_expr, typename std::enable_if<
+        is_matrix_expression<typename T_expr::tag>::value&&
+        std::is_same<elem_t, typename T_expr::elem_t>::value
+        >::type*& = enabler>
+    Matrix(const T_expr& expr)
+        : values_(dimension_row(expr), nest_container_type(dimension_col(expr), 0e0))
     {
-        for(auto i=0; i<exp.size_row(); ++i)
-            for(auto j=0; j<exp.size_col(); ++j)
-                (*this)(i, j) = exp(i, j);
-    }
-
-    template<class E,
-             typename std::enable_if<
-                 is_MatrixExpression<typename E::value_trait>::value
-                 >::type*& = enabler>
-    RealDynamicMatrix(const E& exp)
-        : values_(E::row, std::vector<double>(E::col, 0e0))
-    {
-        for(auto i=0; i<E::row; ++i)
-            for(auto j=0; j<E::col; ++j)
-                 (*this)(i, j) = exp(i, j);
+        for(auto i=0; i<dimension_row(expr); ++i)
+            for(auto j=0; j<dimension_col(expr); ++j)
+                (*this)(i, j) = expr(i, j);
     }
 
     // operator = 
-    RealDynamicMatrix& operator=(const RealDynamicMatrix& mat)
+    self_type& operator=(const self_type& mat)
     {
-        values_ = mat.values_;
+        this->values_ = mat.values_;
         return *this;
     }
 
-    template<class E, typename std::enable_if<
-            is_DynamicMatrixExpression<typename E::value_trait>::value
+    template<class T_expr, typename std::enable_if<
+        is_matrix_expression<typename T_expr::tag>::value&&
+        std::is_same<elem_t, typename T_expr::elem_t>::value
         >::type*& = enabler>
-    RealDynamicMatrix& operator=(const E& exp)
+    self_type& operator=(const T_expr& expr)
     {
-        if(exp.size_row() != this->size_row() ||
-           exp.size_col() != this->size_col())
-        {
+        if(dimension_row(expr) != this->size_row() ||
+           dimension_col(expr) != this->size_col())
             throw std::invalid_argument("different size matrix");
-        }
 
-        for(auto i=0; i<exp.size_row(); ++i)
-            for(auto j=0; j<exp.size_col(); ++j)
-                this->values_.at(i).at(j) = exp(i, j);
+        for(std::size_t i = 0; i<dimension_row(expr); ++i)
+            for(auto j=0; j<dimension_col(expr); ++j)
+                this->values_.at(i).at(j) = expr(i, j);
         return *this;
     }
 
-    template<class E, typename std::enable_if<
-            is_MatrixExpression<typename E::value_trait>::value
+    template<class T_expr, typename std::enable_if<
+        is_matrix_expression<typename T_expr::tag>::value&&
+        std::is_same<elem_t, typename T_expr::elem_t>::value
         >::type*& = enabler>
-    RealDynamicMatrix& operator=(const E& exp)
+    self_type& operator+=(const T_expr& expr)
     {
-        if(E::row != this->size_row() || E::col != this->size_col())
-        {
-            throw std::invalid_argument("different size matrix");
-        }
-
-        for(auto i=0; i<E::row; ++i)
-            for(auto j=0; j<E::col; ++j)
-                this->values_.at(i).at(j) = exp(i,j);
-        return *this;
+        return *this = (*this + expr);
     }
 
-    const double operator()(const std::size_t i, const std::size_t j) const
+    template<class T_expr, typename std::enable_if<
+        is_matrix_expression<typename T_expr::tag>::value&&
+        std::is_same<elem_t, typename T_expr::elem_t>::value
+        >::type*& = enabler>
+    self_type& operator-=(const T_expr& expr)
+    {
+        return *this = (*this - expr);
+    }
+
+    self_type& operator*=(const elem_t& scl)
+    {
+        return *this = (*this * scl);
+    }
+
+    self_type& operator/=(const elem_t& scl)
+    {
+        return *this = (*this / scl);
+    }
+
+    elem_t const& operator()(const std::size_t i, const std::size_t j) const
     {
         return values_[i][j];
     }
 
-    double& operator()(const std::size_t i, const std::size_t j)
+    elem_t& operator()(const std::size_t i, const std::size_t j)
     {
         return values_[i][j];
     }
 
-    const double at(const std::size_t i, const std::size_t j) const
+    elem_t const& at(const std::size_t i, const std::size_t j) const
     {
         return values_.at(i).at(j);
     }
 
-    double& at(const std::size_t i, const std::size_t j)
+    elem_t& at(const std::size_t i, const std::size_t j)
     {
         return values_.at(i).at(j);
     }
 
-    const std::size_t size_row() const
-    {
-        return values_.size();
-    }
-
-    const std::size_t size_col() const
-    {
-        return values_.at(0).size();
-    }
+    std::size_t size_row() const {return values_.size();}
+    std::size_t size_col() const {return values_.front().size();}
 
   private:
 
-    std::vector<std::vector<double>> values_;
+    container_type values_;
 };
 
 }
