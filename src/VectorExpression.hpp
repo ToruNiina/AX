@@ -2,6 +2,7 @@
 #define AX_VECTOR_EXPRESSION_H
 #include "TypeTraits.hpp"
 #include "OperatorStructs.hpp"
+#include "Dimension.hpp"
 #include "util.hpp"
 #include <stdexcept>
 #include <cmath>
