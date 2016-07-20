@@ -7,9 +7,9 @@
 #include <boost/test/included/unit_test.hpp>
 #endif
 
-#include "Matrix.hpp"
+#include "../src/Matrix.hpp"
 template<std::size_t N, std::size_t M>
-using MatrixNMd = ax::RealMatrix<N, M>;
+using MatrixNMd = ax::Matrix<double, N, M>;
 
 #include "test_Defs.hpp"
 using ax::test::tolerance;
