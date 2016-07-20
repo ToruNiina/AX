@@ -83,8 +83,8 @@ class Vector3DCrossProduct
     elem_t operator[](const std::size_t i) const
     {
         using circ = circular_iteration<3>;
-        return l_[circ::advance(i)] * r_[circ::retreat(i)] -
-               l_[circ::retreat(i)] * r_[circ::advance(i)];
+        return l_[circ::advance(i)] * r_[circ::retrace(i)] -
+               l_[circ::retrace(i)] * r_[circ::advance(i)];
     }
 
     T_lhs const& l_;

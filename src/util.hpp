@@ -9,9 +9,9 @@ template<std::size_t I_inter>
 struct circular_iteration
 {
     constexpr static std::size_t advance(const std::size_t i);
-    constexpr static std::size_t retreat(const std::size_t i);
+    constexpr static std::size_t retrace(const std::size_t i);
     constexpr static std::size_t advance_times(const std::size_t i, const std::size_t times);
-    constexpr static std::size_t retreat_times(const std::size_t i, const std::size_t times);
+    constexpr static std::size_t retrace_times(const std::size_t i, const std::size_t times);
 };
 
 
@@ -22,7 +22,7 @@ constexpr inline std::size_t circular_iteration<I_inter>::advance(const std::siz
 }
 
 template<std::size_t I_inter>
-constexpr inline std::size_t circular_iteration<I_inter>::retreat(const std::size_t i)
+constexpr inline std::size_t circular_iteration<I_inter>::retrace(const std::size_t i)
 {
     return (0 < i) ? (i - 1) : (i - 1 + I_inter);
 }
@@ -37,10 +37,10 @@ circular_iteration<I_inter>::advance_times(
 
 template<std::size_t I_inter>
 constexpr inline std::size_t
-circular_iteration<I_inter>::retreat_times(
+circular_iteration<I_inter>::retrace_times(
         const std::size_t i, const std::size_t times)
 {
-    return (times == 0) ? i : retreat_times(retreat(i), times - 1);
+    return (times == 0) ? i : retrace_times(retrace(i), times - 1);
 }
 
 
