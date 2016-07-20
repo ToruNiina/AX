@@ -79,5 +79,19 @@ namespace ax
             ? T_rhs::dim : T_lhs::dim;
     };
 
+    template<typename T_target, typename Front, typename ... T_args>
+    struct is_all
+    {
+        constexpr static bool value =
+            std::is_same<T_target, Front>::value &&
+            is_all<T_target, T_args...>::value;
+    };
+
+    template<typename T_target, typename Last>
+    struct is_all<T_target, Last>
+    {
+        constexpr static bool value = true;
+    };
+
 }
 #endif //AX_MATRIX_EXPRESSION_H

@@ -36,8 +36,9 @@ class Vector
         for(std::size_t i(0); i<dim; ++i) values_[i] = vec[i];
     }
 
-    template<typename ... T_args,
-             typename std::enable_if<sizeof...(T_args) == dim>::type*& = enabler>
+    template<typename ... T_args, typename std::enable_if<
+        (sizeof...(T_args) == dim) && is_all<elem_t, T_args...>::value
+        >::type*& = enabler>
     Vector(T_args ... args) : values_{{args...}}
     {
         ;
