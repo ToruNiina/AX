@@ -35,7 +35,7 @@ sample code:
     ax::Vector<double, 6> vec3(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
     
     auto vec4 = vec1 + vec2; // will be (2.0, 4.0, 6.0)
-    // auto vec5 = vec1 + vec3; will cause compile error
+    // auto vec5 = vec1 + vec3; will cause compilation error
     
     ax::Vector<char, 3> vec_char('a','b','c');// you can do this but not so useful
 
@@ -46,7 +46,7 @@ sample code:
 
     ax::Matrix<double, 2, 3> matrix; // will be {{0,0,0}, {0,0,0}}
     auto vec_m = matrix * vec1;      // will be {0,0,0}
-    // auto vec_m = vec1 * matrix;   // will cause compile error
+    // auto vec_m = vec1 * matrix;   // will cause compilation error
 
 ## testing
 
