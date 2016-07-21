@@ -15,12 +15,9 @@ using ax::test::seed;
 
 #include "../src/LUDecomposition.hpp"
 
-template<std::size_t N, std::size_t M>
-using RealMatrix = ax::RealMatrix<N,M>;
-
 BOOST_AUTO_TEST_CASE(LUDecomposition)
 {
-    RealMatrix<4,4> mat;
+    ax::Matrix<double, 4,4> mat;
 
     std::mt19937 mt(seed);
     std::uniform_real_distribution<double> randreal(0e0, 1e0);
@@ -30,12 +27,11 @@ BOOST_AUTO_TEST_CASE(LUDecomposition)
         for(std::size_t j=0; j<4; ++j)
             mat(i,j) = rand1[i][j] = randreal(mt);
 
-    ax::StaticLUDecomposer<RealMatrix<4,4>> solver(mat);
-    solver.solve();
+    const auto LUpair = ax::LUdecompose<ax::Doolittle>(mat);
 
-    const RealMatrix<4,4> L = solver.get_L();
-    const RealMatrix<4,4> U = solver.get_U();
-    const RealMatrix<4,4> A = L * U;
+    const ax::Matrix<double, 4,4> L = LUpair.first;
+    const ax::Matrix<double, 4,4> U = LUpair.second;
+    const ax::Matrix<double, 4,4> A = L * U;
 
     // ============= test for L ============= 
     for(std::size_t i = 0; i<4; ++i)
