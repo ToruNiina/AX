@@ -6,9 +6,9 @@ set(TEST_NAMES
     test_dynamic_vector
     test_static_matrix
     test_dynamic_matrix
-#     test_vector_matrix
+    test_vector_matrix
     test_LUDecomposition
-#     test_2or3_inverse_matrix
+    test_2or3_inverse_matrix
     test_JacobiMethod
     )
 
