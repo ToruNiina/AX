@@ -162,7 +162,16 @@ class Vector<T_elem, DYNAMIC>
     Vector<elem_t, dim>& operator/=(const elem_t& scl)
     {
         return *this = (*this / scl);
-    } 
+    }
+
+    void append(const elem_t& e)
+    {
+        values_.emplace_back(e); return;
+    }
+    void append(const elem_t& e, const std::size_t i)
+    {
+        values_.resize(e, values_.size() + i); return;
+    }
 
     elem_t const& operator[](const std::size_t i) const {return values_[i];}
     elem_t&       operator[](const std::size_t i)       {return values_[i];}
