@@ -250,6 +250,29 @@ operator*(const T_lhs& lhs, const T_rhs& rhs)
                T_lhs::dim_row, T_rhs::dim_col>(lhs, rhs);
 }
 
+// for matrix * vector
+template<class T_mat, class T_vec, typename std::enable_if<
+    is_matrix_expression<typename T_mat::tag>::value&&
+    is_vector_expression<typename T_vec::tag>::value&&
+    is_same_dimension<T_vec::dim, T_mat::dim_col>::value
+    >::type*& = enabler>
+inline detail::MatrixVectorProduct<T_mat, T_vec, T_mat::dim_row>
+operator*(const T_mat& lhs, const T_vec& rhs)
+{
+    return detail::MatrixVectorProduct<T_mat, T_vec, T_mat::dim_row>(lhs, rhs);
+}
+
+// for vector * matrix
+template<class T_mat, class T_vec, typename std::enable_if<
+    is_matrix_expression<typename T_mat::tag>::value&&
+    is_vector_expression<typename T_vec::tag>::value&&
+    is_same_dimension<T_vec::dim, T_mat::dim_row>::value
+    >::type*& = enabler>
+inline detail::VectorMatrixProduct<T_mat, T_vec, T_mat::dim_col>
+operator*(const T_vec& lhs, const T_mat& rhs)
+{
+    return detail::MatrixVectorProduct<T_mat, T_vec, T_mat::dim_col>(lhs, rhs);
+}
 
 //left hand side is matrix
 template<class T_mat, class T_scl,
