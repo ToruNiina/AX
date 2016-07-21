@@ -96,6 +96,11 @@ class Matrix
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~ operator ~~~~~~~~~~~~~~~~~~~~~~~~~
+    self_type& operator=(const self_type& mat)
+    {
+        this->values_ = mat.values_;
+        return *this;
+    }
 
     template<class T_expr, typename std::enable_if<
         is_matrix_expression<typename T_expr::tag>::value&&
