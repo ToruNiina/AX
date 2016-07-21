@@ -3,6 +3,10 @@
 #include "src/Vector.hpp"
 #include "src/DynamicVector.hpp"
 #include "src/Matrix.hpp"
+#include "src/DynamicMatrix.hpp"
+#include "src/InverseMatrix.hpp"
+#include "src/JacobiMethod.hpp"
+#include "src/LUDecomposition.hpp"
 #include "src/io.hpp"
 
 // reuquire Boost.math
@@ -11,8 +15,10 @@
 namespace ax
 {
     using Vector3d = Vector<double, 3>;
-    using Matrix3d = Matrix<double, 3,3>;
-    using Matrix4d = Matrix<double, 4,4>;
+    using VectorXd = Vector<double, DYNAMIC>;
+    using Matrix3d = Matrix<double, 3, 3>;
+    using Matrix4d = Matrix<double, 4, 4>;
+    using MatrixXd = Matrix<double, DYNAMIC, DYNAMIC>;
 }
 
 
