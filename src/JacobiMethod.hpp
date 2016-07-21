@@ -138,7 +138,7 @@ JacobiMethod<Matrix<T_elem, I_dim, I_dim>>::get_maxindex(const matrix_type& m) c
 }
 
 template <typename T_elem, dimension_type I_dim>
-typename JacobiMethod<Matrix<T_elem, I_dim, I_dim>>::elem_t
+inline typename JacobiMethod<Matrix<T_elem, I_dim, I_dim>>::elem_t
 JacobiMethod<Matrix<T_elem, I_dim, I_dim>>::max_relative_tolerance
     (const matrix_type& ta,  const matrix_type& tm) const
 {
@@ -152,7 +152,7 @@ JacobiMethod<Matrix<T_elem, I_dim, I_dim>>::max_relative_tolerance
 }
 
 template <typename T_elem, dimension_type I_dim>
-bool
+inline bool
 JacobiMethod<Matrix<T_elem, I_dim, I_dim>>::is_symmetric(const matrix_type& m) const
 {
     for(auto i(0); i<dim-1; ++i)
@@ -160,6 +160,22 @@ JacobiMethod<Matrix<T_elem, I_dim, I_dim>>::is_symmetric(const matrix_type& m) c
             if(fabs(m(i,j) - m(j,i)) > ABS_TOLERANCE) return false;
     return true;
 }
+
+// helper function
+template<typename T_mat, typename std::enable_if<
+    is_matrix_expression<typename T_mat::tag>::value&&
+    is_same_dimension<T_mat::dim_col, T_mat::dim_row>::value&&
+    is_static_dimension<T_mat::dim_col>::value>::type*& = enabler>
+std::array<typename JacobiMethod<
+               Matrix<typename T_mat::elem_t, T_mat::dim_row, T_mat::dim_col>
+           >::eigenpair_type, T_mat::dim_col>
+Jacobimethod(const T_mat& mat)
+{
+    return (JacobiMethod<
+               Matrix<typename T_mat::elem_t, T_mat::dim_row, T_mat::dim_col>
+            >(mat)).solve();
+}
+
 
 }//ax
 
