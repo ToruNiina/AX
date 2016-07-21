@@ -46,7 +46,8 @@ BOOST_AUTO_TEST_CASE(MatrixNd_Ctor)
             else
                 BOOST_CHECK_EQUAL(mat2(i,j), 0e0);
 
-    const MatrixNMd<Dim_N, Dim_M> mat3 = mat1;
+    MatrixNMd<Dim_N, Dim_M> mat3;
+    mat3 = mat1;
 
     for(std::size_t i=0; i<Dim_N; ++i)
         for(std::size_t j=0; j<Dim_M; ++j)
