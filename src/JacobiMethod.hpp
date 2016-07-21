@@ -5,273 +5,162 @@
 #include <cmath>
 #include "Matrix.hpp"
 #include "Vector.hpp"
-#include "io.hpp"
 
 namespace ax
 {
-    template <std::size_t S>
-    class JacobiSolver
+
+template <typename T_mat>
+class JacobiMethod;
+
+
+template <typename T_elem, dimension_type I_dim>
+class JacobiMethod<Matrix<T_elem, I_dim, I_dim>>
+{
+  public:
+    // traits
+    using elem_t = T_elem;
+    constexpr static dimension_type dim = I_dim;
+
+    using matrix_type = Matrix<elem_t, dim, dim>;
+    using vector_type = Vector<elem_t, dim>;
+    using eigenvalue_type = elem_t;
+    using eigenvector_type = vector_type;
+    using eigenpair_type = std::pair<elem_t, vector_type>;
+
+    constexpr static elem_t ABS_TOLERANCE = 1e-10;
+    constexpr static elem_t REL_TOLERANCE = 1e-12;
+    constexpr static std::size_t MAX_LOOP = 10000;
+
+  public:
+    JacobiMethod(){}
+    ~JacobiMethod() = default;
+
+    template<class T_mat, typename std::enable_if<
+        is_matrix_expression<typename T_mat::tag>::value&&
+        is_same_dimension<T_mat::dim_row, dim>::value&&
+        is_same_dimension<T_mat::dim_col, dim>::value
+        >::type*& = enabler>
+    JacobiMethod(const T_mat& mat) : matrix_(mat){}
+
+    std::array<eigenpair_type, dim> solve() const;
+
+    matrix_type const& matrix() const {return this->matrix_;}
+    matrix_type&       matrix()       {return this->matrix_;}
+
+  private:
+
+    bool is_symmetric(const matrix_type& m) const;
+    std::pair<std::size_t, std::size_t> get_maxindex(const matrix_type& m) const;
+    elem_t max_relative_tolerance(const matrix_type& ta, const matrix_type& tm) const;
+
+  private:
+
+    matrix_type matrix_;
+};
+
+
+template <typename T_elem, dimension_type I_dim>
+std::array<typename JacobiMethod<Matrix<T_elem, I_dim, I_dim>>::eigenpair_type,
+           JacobiMethod<Matrix<T_elem, I_dim, I_dim>>::dim>
+JacobiMethod<Matrix<T_elem, I_dim, I_dim>>::solve() const
+{
+    if(!is_symmetric(matrix_))
+        throw std::invalid_argument("JacobiMethod: asymmetric matrix");
+
+    matrix_type target(matrix_);
+    matrix_type Ps(1e0);
+
+    unsigned int num_Jacobi_loop(0);
+    for(; num_Jacobi_loop < MAX_LOOP; ++num_Jacobi_loop)
     {
-        public:
+        if(!is_symmetric(target))
+            throw std::invalid_argument("JacobiMethod: asymmetric matrix");
 
-            JacobiSolver()
-                : solved(false)
-            {}
+        std::pair<std::size_t, std::size_t> index(get_maxindex(target));
 
-            template<class M, typename std::enable_if<
-                is_MatrixExpression<typename M::value_trait>::value&&
-                is_SameSize<M::row, S>::value&&
-                is_SameSize<M::col, S>::value
-                >::type*& = enabler>
-            JacobiSolver(const M& m)
-                :solved(false), matrix(m)
-            {
-                solve();
-            }
+        if(std::abs(target(index.first, index.second)) < ABS_TOLERANCE) break;
 
-            ~JacobiSolver(){}
+        const elem_t alpha = (target(index.first,  index.first) -
+                              target(index.second, index.second)) * 0.5;
+        const elem_t beta  = -1e0 * target(index.first, index.second);
+        const elem_t gamma = std::abs(alpha) / sqrt(alpha * alpha + beta * beta);
 
-            template<class M, typename std::enable_if<
-                is_MatrixExpression<typename M::value_trait>::value&&
-                is_SameSize<M::row, S>::value&&
-                is_SameSize<M::col, S>::value
-                >::type*& = enabler>
-            void set_matrix(const M& m)
-            {
-                solved = false;
-                matrix = m;
-            }
+        const elem_t cos_ = sqrt((1e0 + gamma) * 0.5);
+        const elem_t sin_ = (alpha * beta < 0e0) ?
+                             -1.0 * sqrt(0.5 * (1e0 - gamma)) :
+                             sqrt(0.5 * (1e0 - gamma));
+        matrix_type Ppri(1e0);
+        Ppri(index.first, index.first)   =  cos_;
+        Ppri(index.first, index.second)  =  sin_;
+        Ppri(index.second, index.first)  = -sin_;
+        Ppri(index.second, index.second) =  cos_;
 
-            double get_eigenvalue(const std::size_t i)
-            {
-                if(!solved) solve();
-                return eigenvalue[i];
-            }
+        matrix_type temp(transpose(Ppri) * target * Ppri);
+        temp(index.first, index.second) = 0e0; // should be zero
+        temp(index.second, index.first) = 0e0;
 
-            RealVector<S> get_eigenvec(const std::size_t i)
-            {
-                if(!solved) solve();
-                return eigenvector[i];
-            }
+        if(max_relative_tolerance(target, temp) < REL_TOLERANCE) break;
 
-            std::pair<double, RealVector<S>> get_eigenpair(const std::size_t i)
-            {
-                if(!solved) solve();
-                return std::make_pair(eigenvalue[i], eigenvector[i]);
-            }
-
-            std::pair<double, RealVector<S>> get_maxeigenpair();
-            std::pair<double, RealVector<S>> get_mineigenpair();
-
-            void solve();
-
-        private:
-
-            bool is_symmetric(const RealMatrix<S,S>& m) const;
-            std::pair<std::size_t, std::size_t>
-                get_maxindex(const RealMatrix<S,S>& m) const;
-            double get_max_relative_tolerance(const RealMatrix<S,S>& ta,
-                                              const RealMatrix<S,S>& tm) const;
-
-        private:
-
-            bool solved;
-            static constexpr double ABS_TOLERANCE = 1e-10;
-            static constexpr double REL_TOLERANCE = 1e-12;
-            static constexpr unsigned int MAX_LOOP = 10000;
-            std::array<double, S> eigenvalue;
-            std::array<RealVector<S>, S> eigenvector;
-            RealMatrix<S,S> matrix;
-    };
-
-    template<std::size_t S>
-    void JacobiSolver<S>::solve()
-    {
-        if(!is_symmetric(matrix))
-        {
-            std::cout << "Error  : "
-                      << "cannot solve asymmetric matrix using Jacobi method"
-                      << std::endl;
-            return;
-        }
-
-        RealMatrix<S,S> target(matrix);
-        RealMatrix<S,S> Ps(1e0);
-
-        unsigned int num_Jacobi_loop(0);
-        for(; num_Jacobi_loop < MAX_LOOP; ++num_Jacobi_loop)
-        {
-            if(!is_symmetric(target))
-            {
-                std::cout << "Error  : "
-                          << "target is not symmetric : "
-                          << "loop " << num_Jacobi_loop << "times"
-                          << std::endl;
-                std::cout << target << std::endl;
-                throw std::invalid_argument("asymmetric");
-            }
-
-            std::pair<std::size_t, std::size_t> index(get_maxindex(target));
-
-            if(fabs(target(index.first, index.second)) < ABS_TOLERANCE)
-                break;
-
-            RealMatrix<S,S> Ppri(1e0);
-
-            double alpha
-                = (target(index.first, index.first) -
-                   target(index.second, index.second)) * 0.5;
-            double beta
-                = -1e0 * target(index.first, index.second);
-            double gamma
-                = fabs(alpha) / sqrt(alpha * alpha + beta * beta);
-
-            double sign(1e0);
-            if(alpha * beta < 0e0) sign *= -1e0;
-
-            double cos = sqrt((1e0 + gamma) * 0.5);
-            double sin = sqrt((1e0 - gamma) * 0.5) * sign;
-
-            Ppri(index.first, index.first)   = cos;
-            Ppri(index.first, index.second)  = sin;
-            Ppri(index.second, index.first) = -sin;
-            Ppri(index.second, index.second) = cos;
-
-            RealMatrix<S,S> temp(transpose(Ppri) * target * Ppri);
-            temp(index.first, index.second) = 0e0;// typically
-            temp(index.second, index.first) = 0e0;// 1e-15 * other element
-
-            if(get_max_relative_tolerance(target, temp) < REL_TOLERANCE)
-                break;
-
-            target = temp;
-
-            temp = Ps * Ppri;
-            Ps = temp;
-        }
-//         std::cout << num_Jacobi_loop
-//                   << " times" << std::endl;
-        if(num_Jacobi_loop == MAX_LOOP)
-        {
-            std::cout << "Warning: Cannot solve on absolute tolerance"
-                      << ABS_TOLERANCE << ", relative tolerance "
-                      << REL_TOLERANCE << " in loop " << MAX_LOOP << "times"
-                      << std::endl;
-            std::cout << "P^-1AP = " << std::endl;
-            std::cout << target << std::endl;
-            std::cout << "P = " << std::endl;
-            std::cout << Ps << std::endl;
-            throw std::invalid_argument("cannot solve");
-        }
-
-//         std::cout << "Ps" << std::endl;
-//         std::cout << Ps << std::endl;
-//         std::cout << std::endl;
-//         std::cout << "target" << std::endl;
-//         std::cout << target << std::endl;
-
-        for(auto i(0); i<S; ++i)
-        {
-            eigenvalue[i] = target(i,i);
-            std::array<double, S> evec;
-            for(auto j(0); j<S; ++j)
-                evec[j] = Ps(j,i);
-
-            eigenvector[i] = RealVector<S>(evec);
-//                 = std::array<double, S>({{Ps(0,i),Ps(1,i),Ps(2,i),Ps(3,i)}});
-        }
-
-        solved = true;
-        return;
+        target = temp;
+        temp = Ps * Ppri;
+        Ps = temp;
     }
 
-    template<std::size_t S>
-    std::pair<double, RealVector<S> >
-        JacobiSolver<S>::get_maxeigenpair()
+    if(num_Jacobi_loop == MAX_LOOP)
+        std::cerr << "Warning: Cannot solve with the tolerance" << std::endl;
+
+    std::array<eigenpair_type, dim> retval;
+    for(std::size_t i(0); i<dim; ++i)
     {
-        double max(eigenvalue[0]);
-        std::size_t index(0);
-        for(std::size_t i(1); i<S; ++i)
-        {
-            if(max < eigenvalue[i])
-            {
-                max = eigenvalue[i];
-                index = i;
-            }
-        }
-        return std::make_pair(eigenvalue[index], eigenvector[index]);
+        vector_type evec;
+        for(std::size_t j(0); j<dim; ++j) evec[j] = Ps(j,i);
+        retval[i] = std::make_pair(target(i,i), evec);
     }
 
-    template<std::size_t S>
-    std::pair<double, RealVector<S>>
-        JacobiSolver<S>::get_mineigenpair()
-    {
-        double min(eigenvalue[0]);
-        std::size_t index(0);
-        for(std::size_t i(1); i<S; ++i)
-        {
-            if(min > eigenvalue[i])
-            {
-                min = eigenvalue[i];
-                index = i;
-            }
-        }
-        return std::make_pair(eigenvalue[index], eigenvector[index]);
-    }
-
-
-    template<std::size_t S>
-    std::pair<std::size_t, std::size_t>
-        JacobiSolver<S>::get_maxindex(const RealMatrix<S,S>& m) const
-    {
-        double max = fabs(m(0,1));
-        std::pair<std::size_t, std::size_t> index = std::make_pair(0,1);
-
-        for(std::size_t i(0); i<S-1; ++i)
-        {
-            for(std::size_t j(i+1); j<S; ++j)
-            {
-                if(max < fabs(m(i,j)))
-                {
-                    max = fabs(m(i,j));
-                    index = std::make_pair(i,j);
-                }
-            }
-        }
-
-//         std::cout << max << std::endl;
-//         std::cout << index.first << ", " << index.second << std::endl;
-//         std::cout << std::endl;
-        return index;
-    }
-
-    template<std::size_t S>
-    double JacobiSolver<S>::get_max_relative_tolerance
-        (const RealMatrix<S,S>& ta,  const RealMatrix<S,S>& tm) const
-    {
-        double max_reltol(0e0);
-        for(auto i(0); i<S; ++i)
-        {
-            double temp(fabs(ta(i,i) - tm(i,i)));
-            if(temp > max_reltol) max_reltol = temp;
-        }
-        return max_reltol;
-    }
-
-    template<std::size_t S>
-    bool JacobiSolver<S>::is_symmetric(const RealMatrix<S,S>& m) const
-    {
-        double TOL_EQUAL(1e-10);
-        for(auto i(0); i<S-1; ++i)
-        {
-            for(auto j(i+1); j<S; ++j)
-            {
-                if(fabs(m(i,j) - m(j,i)) > TOL_EQUAL) return false;
-            }
-        }
-        return true;
-    }
-
+    return retval;
 }
+
+template <typename T_elem, dimension_type I_dim>
+inline std::pair<std::size_t, std::size_t>
+JacobiMethod<Matrix<T_elem, I_dim, I_dim>>::get_maxindex(const matrix_type& m) const
+{
+    elem_t max = std::abs(m(0,1));
+    auto index = std::make_pair(0,1);
+
+    for(std::size_t i(0); i<dim-1; ++i)
+        for(std::size_t j(i+1); j<dim; ++j)
+            if(max < std::abs(m(i,j)))
+            {
+                max = std::abs(m(i,j));
+                index = std::make_pair(i,j);
+            }
+    return index;
+}
+
+template <typename T_elem, dimension_type I_dim>
+typename JacobiMethod<Matrix<T_elem, I_dim, I_dim>>::elem_t
+JacobiMethod<Matrix<T_elem, I_dim, I_dim>>::max_relative_tolerance
+    (const matrix_type& ta,  const matrix_type& tm) const
+{
+    elem_t max_reltol(0e0);
+    for(auto i(0); i<dim; ++i)
+    {
+        const elem_t temp = std::abs(ta(i,i) - tm(i,i));
+        if(temp > max_reltol) max_reltol = temp;
+    }
+    return max_reltol;
+}
+
+template <typename T_elem, dimension_type I_dim>
+bool
+JacobiMethod<Matrix<T_elem, I_dim, I_dim>>::is_symmetric(const matrix_type& m) const
+{
+    for(auto i(0); i<dim-1; ++i)
+        for(auto j(i+1); j<dim; ++j)
+            if(fabs(m(i,j) - m(j,i)) > ABS_TOLERANCE) return false;
+    return true;
+}
+
+}//ax
 
 #endif //AX_JACOBI_METHOD_H
