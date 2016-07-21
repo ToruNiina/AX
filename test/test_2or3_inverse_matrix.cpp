@@ -7,7 +7,7 @@
 #include <boost/test/included/unit_test.hpp>
 #endif
 
-#include "InverseMatrix.hpp"
+#include "../src/InverseMatrix.hpp"
 
 #include "test_Defs.hpp"
 using ax::test::tolerance;
@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_CASE(matrix_2x2)
     std::mt19937 mt(seed);
     std::uniform_real_distribution<double> randreal(0e0, 1e0);
 
-    ax::RealMatrix<msize,msize> mat;
+    ax::Matrix<double, msize,msize> mat;
     double det = 0e0;
 
     while(det == 0e0)
@@ -36,8 +36,8 @@ BOOST_AUTO_TEST_CASE(matrix_2x2)
         det = ax::determinant(mat);
     }
 
-    const ax::RealMatrix<msize,msize> inv = inverse(mat);
-    const ax::RealMatrix<msize,msize> E   = inv * mat;
+    const ax::Matrix<double, msize,msize> inv = inverse(mat);
+    const ax::Matrix<double, msize,msize> E   = inv * mat;
 
     for(std::size_t i=0; i<msize; ++i)
         for(std::size_t j=0; j<msize; ++j)
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(matrix_3x3)
     std::mt19937 mt(seed);
     std::uniform_real_distribution<double> randreal(0e0, 1e0);
 
-    ax::RealMatrix<msize,msize> mat;
+    ax::Matrix<double, msize,msize> mat;
     double det = 0e0;
 
     while(det == 0e0)
@@ -67,8 +67,8 @@ BOOST_AUTO_TEST_CASE(matrix_3x3)
         det = ax::determinant(mat);
     }
 
-    const ax::RealMatrix<msize,msize> inv = inverse(mat);
-    const ax::RealMatrix<msize,msize> E   = inv * mat;
+    const ax::Matrix<double, msize,msize> inv = inverse(mat);
+    const ax::Matrix<double, msize,msize> E   = inv * mat;
 
     for(std::size_t i=0; i<msize; ++i)
         for(std::size_t j=0; j<msize; ++j)
