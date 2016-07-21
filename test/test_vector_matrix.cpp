@@ -8,10 +8,10 @@
 #endif
 
 #include "../LinearAlgebra.hpp"
-using Vector3d = ax::RealVector<3>;
-using Vector4d = ax::RealVector<4>;
-using Matrix3  = ax::Matrix3;
-using Matrix4  = ax::Matrix4;
+using Vector3d = ax::Vector<double, 3>;
+using Vector4d = ax::Vector<double, 4>;
+using Matrix3  = ax::Matrix3d;
+using Matrix4  = ax::Matrix4d;
 
 #include "test_Defs.hpp"
 using ax::test::tolerance;
@@ -103,15 +103,15 @@ BOOST_AUTO_TEST_CASE(matrix3x3_vector3d_multiplication)
 
 BOOST_AUTO_TEST_CASE(vector4d_matrix4x4_multiplication)
 {
-    const ax::RealVector<4> vec1(2e0);
-    const Matrix4 mat1(1e0);
-    const ax::RealVector<4> vec2 = mat1 * vec1;
+    const Vector4d vec1(2e0);
+    const Matrix4  mat1(1e0);
+    const Vector4d vec2 = mat1 * vec1;
 
     for(std::size_t i = 0; i<4; ++i)
         BOOST_CHECK_EQUAL(vec2[i], vec1[i]);
 
     const Matrix4 mat2(2e0);
-    const ax::RealVector<4> vec3 = mat2 * vec1;
+    const Vector4d vec3 = mat2 * vec1;
 
     for(std::size_t i = 0; i<4; ++i)
         BOOST_CHECK_EQUAL(vec3[i], 2e0 * vec1[i]);
@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_CASE(vector4d_matrix4x4_multiplication)
             mat3(i, j) = random1[i][j];
 
     const Vector4d ones(1e0);
-    const ax::RealVector<4> vec4 = mat3 * ones;
+    const Vector4d vec4 = mat3 * ones;
     for(std::size_t i = 0; i < 4; ++i)
     {
         double value = 0e0;
@@ -183,7 +183,7 @@ BOOST_AUTO_TEST_CASE(matrix4x4_vector4d_multiplication)
 BOOST_AUTO_TEST_CASE(matrix4x3_vector3d_multiplication)
 {
     const Vector3d        vec1(1e0, 1e0, 1e0);
-    ax::RealMatrix<4, 3>  mat1;
+    ax::Matrix<double, 4, 3>  mat1;
 
     std::mt19937 mt(seed);
     std::uniform_real_distribution<double> randreal(0e0, 1e0);
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(matrix4x3_vector3d_multiplication)
         for(std::size_t j = 0; j < 3; ++j)
             mat1(i, j) = random1[i][j];
 
-    const ax::RealVector<4>   vec2 = mat1 * vec1;
+    const Vector4d   vec2 = mat1 * vec1;
     for(std::size_t i = 0; i < 4; ++i)
     {
         double value = 0e0;
@@ -209,10 +209,10 @@ BOOST_AUTO_TEST_CASE(matrix4x3_vector3d_multiplication)
 
 BOOST_AUTO_TEST_CASE(matrix3x4_vector4d_multiplication)
 {
-    const ax::RealVector<4> vec1(1e0);
+    const Vector4d vec1(1e0);
     for(std::size_t i=0; i<4;++i)
         assert(vec1[i] == 1e0);
-    ax::RealMatrix<3, 4>    mat1;
+    ax::Matrix<double, 3, 4>    mat1;
 
     std::mt19937 mt(seed);
     std::uniform_real_distribution<double> randreal(0e0, 1e0);
@@ -226,7 +226,7 @@ BOOST_AUTO_TEST_CASE(matrix3x4_vector4d_multiplication)
         for(std::size_t j = 0; j < 4; ++j)
             mat1(i, j) = random1.at(i).at(j);
 
-    const ax::RealVector<3> vec2 = mat1 * vec1;
+    const Vector3d vec2 = mat1 * vec1;
     for(std::size_t i = 0; i < 3; ++i)
     {
         double value = 0e0;
@@ -238,11 +238,11 @@ BOOST_AUTO_TEST_CASE(matrix3x4_vector4d_multiplication)
 
 BOOST_AUTO_TEST_CASE(vector4d_matrix4x3_multiplication)
 {
-    const ax::RealVector<4> vec1(1e0);
+    const Vector4d vec1(1e0);
     for(std::size_t i = 0; i<4; ++i)
         assert(vec1[i] == 1e0);
 
-    ax::RealMatrix<4, 3>    mat1;
+    ax::Matrix<double, 4, 3>    mat1;
 
     std::mt19937 mt(seed);
     std::uniform_real_distribution<double> randreal(0e0, 1e0);
@@ -268,11 +268,11 @@ BOOST_AUTO_TEST_CASE(vector4d_matrix4x3_multiplication)
 
 BOOST_AUTO_TEST_CASE(vector3d_matrix3x4_multiplication)
 {
-    const ax::RealVector<3> vec1(1e0, 1e0, 1e0);
+    const Vector3d vec1(1e0, 1e0, 1e0);
     for(std::size_t i = 0; i<3; ++i)
         assert(vec1[i] == 1e0);
 
-    ax::RealMatrix<3, 4> mat1;
+    ax::Matrix<double, 3, 4> mat1;
 
     std::mt19937 mt(seed);
     std::uniform_real_distribution<double> randreal(0e0, 1e0);
@@ -286,7 +286,7 @@ BOOST_AUTO_TEST_CASE(vector3d_matrix3x4_multiplication)
         for(std::size_t j = 0; j < 4; ++j)
             mat1(i, j) = random1.at(i).at(j);
 
-    const ax::RealVector<4> vec2 = vec1 * mat1;
+    const Vector4d vec2 = vec1 * mat1;
     for(std::size_t i = 0; i < 4; ++i)
     {
         double value = 0e0;
