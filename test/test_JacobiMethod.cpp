@@ -40,9 +40,9 @@ BOOST_AUTO_TEST_CASE(matrix_2x2)
     const ax::Matrix<double, msize,msize> values = mat;
     const ax::Matrix<double, msize,msize> E(1e0);
 
-    ax::JacobiMethod<ax::Matrix<double, msize,msize>> jacobi(mat);
-
-    auto eigenpair = jacobi.solve();
+//     ax::JacobiMethod<ax::Matrix<double, msize,msize>> jacobi(mat);
+//     auto eigenpair = jacobi.solve();
+    auto eigenpair = Jacobimethod(mat);
 
     for(std::size_t i=0; i<msize; ++i)
     {
@@ -83,8 +83,9 @@ BOOST_AUTO_TEST_CASE(matrix_3x3)
     const ax::Matrix<double, msize,msize> values = mat;
     const ax::Matrix<double, msize,msize> E(1e0);
 
-    ax::JacobiMethod<ax::Matrix<double, msize,msize>> jacobi(mat);
-    const auto eigenpair = jacobi.solve();
+//     ax::JacobiMethod<ax::Matrix<double, msize,msize>> jacobi(mat);
+//     const auto eigenpair = jacobi.solve();
+    auto eigenpair = Jacobimethod(mat);
 
     for(std::size_t i=0; i<msize; ++i)
     {
@@ -120,8 +121,10 @@ BOOST_AUTO_TEST_CASE(matrix_4x4)
     const ax::Matrix<double, msize,msize> values = mat;
     const ax::Matrix<double, msize,msize> E(1e0);
 
-    ax::JacobiMethod<ax::Matrix<double, msize,msize>> jacobi(mat);
-    auto eigenpair = jacobi.solve();
+//     ax::JacobiMethod<ax::Matrix<double, msize,msize>> jacobi(mat);
+//     auto eigenpair = jacobi.solve();
+
+    auto eigenpair = Jacobimethod(mat);
 
     for(std::size_t i=0; i<msize; ++i)
     {
