@@ -58,6 +58,10 @@ to test AX, run following commands.
     cmake ..
     make test
 
+If the version of your compiler is old, your compiler may fail to compile __AX__
+with internal error(compiler's bug). gcc version 4.8.4 failed.
+check your compiler version. clang++-3.6 can compile the codes.
+
 ## history
 
 This library is picked out from Coffee-mill.
