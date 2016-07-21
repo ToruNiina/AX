@@ -44,6 +44,7 @@ constexpr inline std::size_t dimension(const T_vexpr& vexpr)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Matrix ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// for static matrix
 template <class T_mat, typename std::enable_if<
               is_matrix_type<typename T_mat::tag>::value&&
               is_static_dimension<T_mat::dim_col>::value>::type*& = enabler>
@@ -54,51 +55,19 @@ constexpr inline std::size_t dimension_col(const T_mat&)
 
 template <class T_mat, typename std::enable_if<
               is_matrix_type<typename T_mat::tag>::value&&
-              is_dynamic_dimension<T_mat::dim_col>::value>::type*& = enabler>
-constexpr inline std::size_t dimension_col(const T_mat& m)
-{
-    return m.size_col();
-}
-
-template <class T_mexpr, typename std::enable_if<
-              is_exactly_matrix_expr<typename T_mexpr::tag>::value&&
-              is_static_dimension<T_mexpr::dim_col>::value>::type*& = enabler>
-constexpr inline std::size_t dimension_col(const T_mexpr&)
-{
-    return T_mexpr::dim_col;
-}
-
-template <class T_mexpr, typename std::enable_if<
-              is_exactly_matrix_expr<typename T_mexpr::tag>::value&&
-              is_dynamic_dimension<T_mexpr::dim_col>::value>::type*& = enabler>
-constexpr inline std::size_t dimension_col(const T_mexpr& mexpr)
-{
-    return dimension_col(mexpr.l_);
-}
-
-template <class T_mexpr, typename std::enable_if<
-              is_exactly_matrix_prod<typename T_mexpr::tag>::value&&
-              is_dynamic_dimension<T_mexpr::dim_col>::value>::type*& = enabler>
-constexpr inline std::size_t dimension_col(const T_mexpr& mexpr)
-{
-    return dimension_col(mexpr.r_);
-}
-
-template <class T_mexpr, typename std::enable_if<
-              is_exactly_matrix_trans<typename T_mexpr::tag>::value&&
-              is_dynamic_dimension<T_mexpr::dim_col>::value>::type*& = enabler>
-constexpr inline std::size_t dimension_col(const T_mexpr& mexpr)
-{
-    return dimension_row(mexpr.l_);
-}
-
-
-template <class T_mat, typename std::enable_if<
-              is_matrix_type<typename T_mat::tag>::value&&
               is_static_dimension<T_mat::dim_row>::value>::type*& = enabler>
 constexpr inline std::size_t dimension_row(const T_mat&)
 {
     return T_mat::dim_row;
+}
+
+// for dynamic matrix
+template <class T_mat, typename std::enable_if<
+              is_matrix_type<typename T_mat::tag>::value&&
+              is_dynamic_dimension<T_mat::dim_col>::value>::type*& = enabler>
+constexpr inline std::size_t dimension_col(const T_mat& m)
+{
+    return m.size_col();
 }
 
 template <class T_mat, typename std::enable_if<
@@ -109,10 +78,31 @@ constexpr inline std::size_t dimension_row(const T_mat& m)
     return m.size_row();
 }
 
+// for static matrix expression
+template <class T_mexpr, typename std::enable_if<
+              is_exactly_matrix_expr<typename T_mexpr::tag>::value&&
+              is_static_dimension<T_mexpr::dim_col>::value>::type*& = enabler>
+constexpr inline std::size_t dimension_col(const T_mexpr&)
+{
+    return T_mexpr::dim_col;
+}
+
 template <class T_mexpr, typename std::enable_if<
               is_exactly_matrix_expr<typename T_mexpr::tag>::value&&
               is_static_dimension<T_mexpr::dim_row>::value>::type*& = enabler>
-constexpr inline std::size_t dimension_row(const T_mexpr&){return T_mexpr::dim_row;}
+constexpr inline std::size_t dimension_row(const T_mexpr&)
+{
+    return T_mexpr::dim_row;
+}
+
+// for dynamic matrix expression
+template <class T_mexpr, typename std::enable_if<
+              is_exactly_matrix_expr<typename T_mexpr::tag>::value&&
+              is_dynamic_dimension<T_mexpr::dim_col>::value>::type*& = enabler>
+constexpr inline std::size_t dimension_col(const T_mexpr& mexpr)
+{
+    return dimension_col(mexpr.l_);
+}
 
 template <class T_mexpr, typename std::enable_if<
               is_exactly_matrix_expr<typename T_mexpr::tag>::value&&
@@ -122,10 +112,28 @@ constexpr inline std::size_t dimension_row(const T_mexpr& mexpr)
     return dimension_row(mexpr.l_);
 }
 
+// for static matrix transpose
 template <class T_mexpr, typename std::enable_if<
-              is_exactly_matrix_prod<typename T_mexpr::tag>::value&&
-              is_dynamic_dimension<T_mexpr::dim_row>::value>::type*& = enabler>
-constexpr inline std::size_t dimension_row(const T_mexpr& mexpr)
+              is_exactly_matrix_trans<typename T_mexpr::tag>::value&&
+              is_static_dimension<T_mexpr::dim_col>::value>::type*& = enabler>
+constexpr inline std::size_t dimension_col(const T_mexpr&)
+{
+    return T_mexpr::dim_col;
+}
+
+template <class T_mexpr, typename std::enable_if<
+              is_exactly_matrix_trans<typename T_mexpr::tag>::value&&
+              is_static_dimension<T_mexpr::dim_row>::value>::type*& = enabler>
+constexpr inline std::size_t dimension_row(const T_mexpr&)
+{
+    return T_mexpr::dim_row;
+}
+
+// for dynamic matrix transpose
+template <class T_mexpr, typename std::enable_if<
+              is_exactly_matrix_trans<typename T_mexpr::tag>::value&&
+              is_dynamic_dimension<T_mexpr::dim_col>::value>::type*& = enabler>
+constexpr inline std::size_t dimension_col(const T_mexpr& mexpr)
 {
     return dimension_row(mexpr.l_);
 }
@@ -138,6 +146,41 @@ constexpr inline std::size_t dimension_row(const T_mexpr& mexpr)
     return dimension_col(mexpr.l_);
 }
 
+// for static matrix prod
+template <class T_mexpr, typename std::enable_if<
+              is_exactly_matrix_prod<typename T_mexpr::tag>::value&&
+              is_static_dimension<T_mexpr::dim_col>::value>::type*& = enabler>
+constexpr inline std::size_t dimension_col(const T_mexpr& mexpr)
+{
+    return T_mexpr::dim_col;
+}
+
+template <class T_mexpr, typename std::enable_if<
+              is_exactly_matrix_prod<typename T_mexpr::tag>::value&&
+              is_static_dimension<T_mexpr::dim_row>::value>::type*& = enabler>
+constexpr inline std::size_t dimension_row(const T_mexpr& mexpr)
+{
+    return T_mexpr::dim_row;
+}
+
+// for dynamic matrix prod
+template <class T_mexpr, typename std::enable_if<
+              is_exactly_matrix_prod<typename T_mexpr::tag>::value&&
+              is_dynamic_dimension<T_mexpr::dim_col>::value>::type*& = enabler>
+constexpr inline std::size_t dimension_col(const T_mexpr& mexpr)
+{
+    return dimension_col(mexpr.r_);
+}
+
+template <class T_mexpr, typename std::enable_if<
+              is_exactly_matrix_prod<typename T_mexpr::tag>::value&&
+              is_dynamic_dimension<T_mexpr::dim_row>::value>::type*& = enabler>
+constexpr inline std::size_t dimension_row(const T_mexpr& mexpr)
+{
+    return dimension_row(mexpr.l_);
+}
+
+// is this needed?
 template <class T_mat, typename std::enable_if<
               is_matrix_type<typename T_mat::tag>::value&&
               is_static_dimension<T_mat::dim_row>::value>::type*& = enabler>
