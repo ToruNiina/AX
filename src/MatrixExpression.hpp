@@ -87,7 +87,7 @@ class MatrixVectorProduct
     elem_t operator[](const std::size_t i) const
     {
         elem_t retval(0);
-        for(std::size_t j=0; j<dim; ++j)
+        for(std::size_t j=0; j<dimension_col(r_); ++j)
             retval += r_(i, j) * l_[j];
         return retval;
     }
@@ -116,7 +116,7 @@ class VectorMatrixProduct
     elem_t operator[](const std::size_t i) const
     {
         elem_t retval(0);
-        for(std::size_t j=0; j<dim; ++j)
+        for(std::size_t j=0; j<dimension_row(r_); ++j)
             retval += l_[j] * r_(j, i);
         return retval;
     }
@@ -271,7 +271,7 @@ template<class T_mat, class T_vec, typename std::enable_if<
 inline detail::VectorMatrixProduct<T_mat, T_vec, T_mat::dim_col>
 operator*(const T_vec& lhs, const T_mat& rhs)
 {
-    return detail::MatrixVectorProduct<T_mat, T_vec, T_mat::dim_col>(lhs, rhs);
+    return detail::VectorMatrixProduct<T_mat, T_vec, T_mat::dim_col>(lhs, rhs);
 }
 
 //left hand side is matrix
