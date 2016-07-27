@@ -106,7 +106,7 @@ namespace ax
     template<typename T_target, typename Last>
     struct is_all<T_target, Last>
     {
-        constexpr static bool value = true;
+        constexpr static bool value = std::is_same<T_target, Last>::value;
     };
 
 }
