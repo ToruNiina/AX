@@ -1,5 +1,6 @@
 set(TEST_NAMES
     test_type_traits
+    test_dimension
 #     test_3DAVXvector
     test_3Dvector
     test_static_vector
