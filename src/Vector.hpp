@@ -25,20 +25,17 @@ class Vector
 
     Vector() : values_{{}}{}
     ~Vector() = default;
+
     Vector(const elem_t d){values_.fill(d);} 
-    Vector(const container_t& v) : values_(v){} 
+    Vector(const container_t& v): values_(v){} 
     Vector(const self_type& v): values_(v.values_){} 
-    Vector(const std::vector<elem_t>& vec)
-    {
-        if(vec.size() < dim) vec.resize(dim, 0e0);
-        for(std::size_t i(0); i<dim; ++i) values_[i] = vec[i];
-    }
 
     template<typename ... T_args, typename std::enable_if<
         (sizeof...(T_args) == dim) && is_all<elem_t, T_args...>::value
         >::type*& = enabler>
     Vector(T_args ... args) : values_{{args...}}{}
 
+    // from static
     template<class T_expr, typename std::enable_if<
         is_vector_expression<typename T_expr::tag>::value&&
         is_same_dimension<dim, T_expr::dim>::value>::type*& = enabler>
@@ -53,7 +50,7 @@ class Vector
         is_dynamic_dimension<T_expr::dim>::value>::type*& = enabler>
     Vector(const T_expr& expr)
     {
-        if(expr.size() != dim)
+        if(dimension(expr) != dim)
             throw std::invalid_argument("vector size different");
         for(std::size_t i(0); i<dim; ++i) (*this)[i] = expr[i];
     }
@@ -74,7 +71,7 @@ class Vector
         is_dynamic_dimension<T_expr::dim>::value>::type*& = enabler>
     Vector<elem_t, dim>& operator=(const T_expr& expr)
     {
-        if(expr.size() != dim)
+        if(dimension(expr) != dim)
             throw std::invalid_argument("vector size different");
         for(auto i(0); i<dim; ++i) (*this)[i] = expr[i];
         return *this;
@@ -93,7 +90,7 @@ class Vector
         is_dynamic_dimension<T_expr::dim>::value>::type*& = enabler>
     Vector<elem_t, dim>& operator+=(const T_expr& expr)
     {
-        if(expr.size() != dim)
+        if(dimension(expr) != dim)
             throw std::invalid_argument("vector size different");
         return *this = (*this + expr);
     }
@@ -111,7 +108,7 @@ class Vector
         is_dynamic_dimension<T_expr::dim>::value>::type*& = enabler>
     Vector<elem_t, dim>& operator-=(const T_expr& expr)
     {
-        if(expr.size() != dim)
+        if(dimension(expr) != dim)
             throw std::invalid_argument("vector size different");
         return *this = (*this - expr);
     }
