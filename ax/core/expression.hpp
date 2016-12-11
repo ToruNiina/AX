@@ -23,6 +23,10 @@ struct matrix_expression
     {
         return operatorT::invoke(l_(i, j), r_(i, j));
     }
+    scalar_type operator[](const std::size_t i) const
+    {
+        return operatorT::invoke(l_[i], r_[i]);
+    }
 
     lhsT const& l_;
     rhsT const& r_;
@@ -70,6 +74,10 @@ struct scalar_expression
     scalar_type operator()(const std::size_t i, const std::size_t j) const
     {
         return m_(i, j) * s_;
+    }
+    scalar_type operator[](const std::size_t i) const
+    {
+        return operatorT::invoke(m_[i], s_);
     }
 
     matrixT     const& m_;
