@@ -10,6 +10,7 @@ namespace ax
 // operator+
 
 template<typename lhsT, typename rhsT, typename std::enable_if<
+    is_matrix<lhsT>::value && is_matrix<rhsT>::value &&
     matrix_traits<lhsT>::is_static && matrix_traits<lhsT>::is_static &&
     matrix_traits<lhsT>::row == matrix_traits<rhsT>::row &&
     matrix_traits<lhsT>::col == matrix_traits<rhsT>::col,
@@ -25,6 +26,7 @@ operator+(const lhsT& lhs, const rhsT& rhs)
 }
 
 template<typename lhsT, typename rhsT, typename std::enable_if<
+    is_matrix<lhsT>::value && is_matrix<rhsT>::value &&
     matrix_traits<lhsT>::is_static_row && matrix_traits<lhsT>::is_static_row &&
     (matrix_traits<lhsT>::is_dynamic_col || matrix_traits<rhsT>::is_dynamic_col) &&
     matrix_traits<lhsT>::row == matrix_traits<rhsT>::row,
@@ -42,6 +44,7 @@ operator+(const lhsT& lhs, const rhsT& rhs)
 }
 
 template<typename lhsT, typename rhsT, typename std::enable_if<
+    is_matrix<lhsT>::value && is_matrix<rhsT>::value &&
     matrix_traits<lhsT>::is_static_col && matrix_traits<lhsT>::is_static_col &&
     (matrix_traits<lhsT>::is_dynamic_row || matrix_traits<rhsT>::is_dynamic_row) &&
     matrix_traits<lhsT>::col == matrix_traits<rhsT>::col, std::nullptr_t
@@ -59,6 +62,7 @@ operator+(const lhsT& lhs, const rhsT& rhs)
 }
 
 template<typename lhsT, typename rhsT, typename std::enable_if<
+    is_matrix<lhsT>::value && is_matrix<rhsT>::value &&
     (matrix_traits<lhsT>::is_dynamic_row || matrix_traits<rhsT>::is_dynamic_row) &&
     (matrix_traits<lhsT>::is_dynamic_col || matrix_traits<rhsT>::is_dynamic_col),
     std::nullptr_t
@@ -76,6 +80,7 @@ operator+(const lhsT& lhs, const rhsT& rhs)
 // operator-
 
 template<typename lhsT, typename rhsT, typename std::enable_if<
+    is_matrix<lhsT>::value && is_matrix<rhsT>::value &&
     matrix_traits<lhsT>::is_static && matrix_traits<lhsT>::is_static &&
     matrix_traits<lhsT>::row == matrix_traits<rhsT>::row &&
     matrix_traits<lhsT>::col == matrix_traits<rhsT>::col, std::nullptr_t
@@ -91,6 +96,7 @@ operator-(const lhsT& lhs, const rhsT& rhs)
 }
 
 template<typename lhsT, typename rhsT, typename std::enable_if<
+    is_matrix<lhsT>::value && is_matrix<rhsT>::value &&
     matrix_traits<lhsT>::is_static_row && matrix_traits<lhsT>::is_static_row &&
     (matrix_traits<lhsT>::is_dynamic_col || matrix_traits<rhsT>::is_dynamic_col) &&
     matrix_traits<lhsT>::row == matrix_traits<rhsT>::row, std::nullptr_t
@@ -108,6 +114,7 @@ operator-(const lhsT& lhs, const rhsT& rhs)
 }
 
 template<typename lhsT, typename rhsT, typename std::enable_if<
+    is_matrix<lhsT>::value && is_matrix<rhsT>::value &&
     matrix_traits<lhsT>::is_static_col && matrix_traits<lhsT>::is_static_col &&
     (matrix_traits<lhsT>::is_dynamic_row || matrix_traits<rhsT>::is_dynamic_row) &&
     matrix_traits<lhsT>::col == matrix_traits<rhsT>::col, std::nullptr_t
@@ -125,6 +132,7 @@ operator-(const lhsT& lhs, const rhsT& rhs)
 }
 
 template<typename lhsT, typename rhsT, typename std::enable_if<
+    is_matrix<lhsT>::value && is_matrix<rhsT>::value &&
     (matrix_traits<lhsT>::is_dynamic_row || matrix_traits<rhsT>::is_dynamic_row) &&
     (matrix_traits<lhsT>::is_dynamic_col || matrix_traits<rhsT>::is_dynamic_col),
     std::nullptr_t
@@ -142,9 +150,11 @@ operator-(const lhsT& lhs, const rhsT& rhs)
 // operator*
 
 template<typename lhsT, typename rhsT, typename std::enable_if<
+    is_matrix_tag<typename lhsT::tag>::value &&//avoiding "lhsT (a.k.a. double)"
+    is_matrix_tag<typename rhsT::tag>::value &&
     matrix_traits<lhsT>::is_static_col && matrix_traits<rhsT>::is_static_row &&
-    matrix_traits<lhsT>::col == matrix_traits<rhsT>::row, std::nullptr_t
-    >::type = nullptr>
+    matrix_traits<lhsT>::col == matrix_traits<rhsT>::row,
+    std::nullptr_t>::type = nullptr>
 inline matrix_product<lhsT, rhsT,
     row_dimension_of<lhsT>::value, column_dimension_of<rhsT>::value>
 operator*(const lhsT& lhs, const rhsT& rhs)
@@ -154,6 +164,8 @@ operator*(const lhsT& lhs, const rhsT& rhs)
 }
 
 template<typename lhsT, typename rhsT, typename std::enable_if<
+    is_matrix_tag<typename lhsT::tag>::value &&
+    is_matrix_tag<typename rhsT::tag>::value &&
     (matrix_traits<lhsT>::is_dynamic_col || matrix_traits<rhsT>::is_dynamic_row),
     std::nullptr_t>::type = nullptr>
 inline matrix_product<lhsT, rhsT,
@@ -169,7 +181,7 @@ operator*(const lhsT& lhs, const rhsT& rhs)
 // scalar product 
 
 template<typename matT, typename sclT, typename std::enable_if<
-    is_matrix<matT>::value &&
+    is_matrix_tag<typename matT::tag>::value && 
     std::is_convertible<typename matrix_traits<matT>::scalar_type, sclT>::value,
     std::nullptr_t>::type = nullptr>
 inline scalar_expression<matT, multiply<typename matrix_traits<matT>::scalar_type,
@@ -180,8 +192,8 @@ operator*(const matT& mat, const sclT scl)
        sclT>, matrix_traits<matT>::row, matrix_traits<matT>::col>(mat, scl);
 }
 
-template<typename matT, typename sclT, typename std::enable_if<
-    is_matrix<matT>::value &&
+template<typename sclT, typename matT, typename std::enable_if<
+    is_matrix_tag<typename matT::tag>::value &&
     std::is_convertible<typename matrix_traits<matT>::scalar_type, sclT>::value,
     std::nullptr_t>::type = nullptr>
 inline scalar_expression<matT, multiply<typename matrix_traits<matT>::scalar_type,
@@ -193,7 +205,7 @@ operator*(const sclT scl, const matT& mat)
 }
 
 template<typename matT, typename sclT, typename std::enable_if<
-    is_matrix<matT>::value &&
+    is_matrix_tag<typename matT::tag>::value &&
     std::is_convertible<typename matrix_traits<matT>::scalar_type, sclT>::value,
     std::nullptr_t>::type = nullptr>
 inline scalar_expression<matT, divide<typename matrix_traits<matT>::scalar_type,
