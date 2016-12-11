@@ -73,7 +73,7 @@ struct scalar_expression
 
     scalar_type operator()(const std::size_t i, const std::size_t j) const
     {
-        return m_(i, j) * s_;
+        return operatorT::invoke(m_(i, j), s_);
     }
     scalar_type operator[](const std::size_t i) const
     {
