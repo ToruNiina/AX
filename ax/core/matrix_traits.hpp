@@ -6,6 +6,17 @@
 
 namespace ax
 {
+// forward decl
+template<typename T, dimension_type R, dimension_type C>
+class Matrix;
+template<typename lT, typename Op, typename rT, dimension_type R, dimension_type C>
+struct matrix_expression;
+template<typename lT, typename rT, dimension_type R, dimension_type C>
+struct matrix_product;
+template<typename lT, typename Op, dimension_type R, dimension_type C>
+struct scalar_expression;
+template<typename lT, dimension_type R, dimension_type C>
+struct matrix_transpose;
 
 template<typename T>
 struct is_matrix_tag : public std::false_type{};
@@ -17,7 +28,17 @@ template<>
 struct is_matrix_tag<expression_tag> : public std::true_type{};
 
 template<typename T>
-struct is_matrix : public is_matrix_tag<typename T::tag>{};
+struct is_matrix : public std::false_type{};
+template<typename T, dimension_type R, dimension_type C>
+struct is_matrix<Matrix<T, R, C>> : public std::true_type{};
+template<typename lT, typename Op, typename rT, dimension_type R, dimension_type C>
+struct is_matrix<matrix_expression<lT, Op, rT, R, C>> : public std::true_type{};
+template<typename lT, typename rT, dimension_type R, dimension_type C>
+struct is_matrix<matrix_product<lT, rT, R, C>> : public std::true_type{};
+template<typename lT, typename Op, dimension_type R, dimension_type C>
+struct is_matrix<scalar_expression<lT, Op, R, C>> : public std::true_type{};
+template<typename lT, dimension_type R, dimension_type C>
+struct is_matrix<matrix_transpose<lT, R, C>> : public std::true_type{};
 
 template<typename matrixT>
 struct matrix_traits
