@@ -4,6 +4,8 @@
 #include "vector_traits.hpp"
 #include "static_row_vector.hpp"
 #include "static_column_vector.hpp"
+#include "dynamic_row_vector.hpp"
+#include "dynamic_column_vector.hpp"
 #include <cmath>
 
 namespace ax
