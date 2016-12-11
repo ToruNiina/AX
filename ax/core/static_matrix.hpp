@@ -18,7 +18,7 @@ class Matrix
     typedef std::array<scalar_type, num> container_type;
 
     template<typename T>
-    using convertible = std::is_convertible<scalar_type, T>;
+    using convertible = std::is_convertible<T, scalar_type>;
 
   public:
     Matrix() = default;

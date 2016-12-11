@@ -51,7 +51,7 @@ inline Matrix<scalarT, rowN, colN> filled_matrix(const scalarT s)
 template<typename scalarT, dimension_type N>
 inline Matrix<scalarT, N, N> identity_matrix(const scalarT s = 1)
 {
-    Matrix<scalarT, rowN, colN> retval = zero_matrix<scalarT, N, N>();
+    Matrix<scalarT, N, N> retval = zero_matrix<scalarT, N, N>();
     for(dimension_type i=0; i<N; ++i)
         retval(i, i) = s;
     return retval;
